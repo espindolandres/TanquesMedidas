@@ -139,6 +139,12 @@
             header h1 { font-size: 22px; }
             .result-value { font-size: 32px; }
         }
+        .mode-note {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -168,10 +174,19 @@
             <div class="form-group">
                 <label for="litros">💧 Litros medidos (opcional):</label>
                 <input type="number" id="litros" placeholder="Ej: 400" min="0" step="0.1">
-                <small style="font-size:12px;color:#666;">
-                    • Si llenas ALTURA, calcula litros.  
-                    • Si dejas ALTURA vacío y llenas LITROS, calcula centímetros.
-                </small>
+                <div class="mode-note">
+                    • Si llenas ALTURA, calcula LITROS.<br>
+                    • Si dejas ALTURA vacío y llenas LITROS, calcula ALTURA (cm).
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="vacio">📉 Medida en vacío (cm):</label>
+                <input type="number" id="vacio" placeholder="Ej: 100" min="0" step="0.1">
+                <div class="mode-note">
+                    • Si llenas VACÍO, calcula los LITROS LLENOS.<br>
+                    • El vacío se mide desde el fondo hasta el nivel del líquido.
+                </div>
             </div>
 
             <button onclick="buscar()">🔎 Calcular</button>
@@ -189,7 +204,8 @@
                 1. Selecciona el tipo de tanque.<br>
                 2. Modo A: escribe ALTURA (cm) → obtienes LITROS.<br>
                 3. Modo B: deja ALTURA vacío y escribe LITROS → obtienes ALTURA (cm).<br>
-                4. Haz clic en “Calcular”.
+                4. Modo C: escribe VACÍO (cm) → obtienes LITROS LLENOS.<br>
+                5. Haz clic en “Calcular”.
             </div>
         </div>
 
@@ -260,10 +276,77 @@
             ]
         };
 
+        // alturas máximas por tanque (último valor de cada tabla)
+        const alturasMaximas = {
+            "250L": 83,
+            "500L": 92.5,
+            "1000L": 127,
+            "2000L": 164,
+            "5000L": 194.5
+        };
+
+        function alturaToLitros(tanque, altura) {
+            const tabla = datos[tanque];
+            let encontrado = false;
+            let litros = null;
+
+            for (let i = 0; i < tabla.length; i++) {
+                if (Math.abs(tabla[i][0] - altura) < 0.01) {
+                    litros = tabla[i][1];
+                    encontrado = true;
+                    break;
+                }
+            }
+
+            if (!encontrado) {
+                for (let i = 0; i < tabla.length - 1; i++) {
+                    if (altura >= tabla[i][0] && altura <= tabla[i + 1][0]) {
+                        const x1 = tabla[i][0], y1 = tabla[i][1];
+                        const x2 = tabla[i + 1][0], y2 = tabla[i + 1][1];
+                        litros = y1 + (altura - x1) * (y2 - y1) / (x2 - x1);
+                        encontrado = true;
+                        break;
+                    }
+                }
+            }
+
+            return { encontrado, litros };
+        }
+
+        function litrosToAltura(tanque, litrosBuscados) {
+            const tabla = datos[tanque];
+            let encontrado = false;
+            let altura = null;
+
+            for (let i = 0; i < tabla.length; i++) {
+                if (Math.abs(tabla[i][1] - litrosBuscados) < 0.01) {
+                    altura = tabla[i][0];
+                    encontrado = true;
+                    break;
+                }
+            }
+
+            if (!encontrado) {
+                for (let i = 0; i < tabla.length - 1; i++) {
+                    if (litrosBuscados >= tabla[i][1] && litrosBuscados <= tabla[i + 1][1]) {
+                        const y1 = tabla[i][1], x1 = tabla[i][0];
+                        const y2 = tabla[i + 1][1], x2 = tabla[i + 1][0];
+                        altura = x1 + (litrosBuscados - y1) * (x2 - x1) / (y2 - y1);
+                        encontrado = true;
+                        break;
+                    }
+                }
+            }
+
+            return { encontrado, altura };
+        }
+
         function buscar() {
             const tanque = document.getElementById('tanque').value;
             const alturaStr = document.getElementById('altura').value;
             const litrosStr = document.getElementById('litros').value;
+            const vacioStr = document.getElementById('vacio').value;
+
             const resultBox = document.getElementById('resultBox');
             const resultValue = document.getElementById('resultValue');
             const resultUnit = document.getElementById('resultUnit');
@@ -274,7 +357,10 @@
 
             const tabla = datos[tanque];
 
-            // MODO A: Altura -> Litros
+            // Prioridad de modos:
+            // 1) Altura -> Litros
+            // 2) Litros -> Altura
+            // 3) Vacío -> Litros llenos
             if (alturaStr !== '') {
                 const altura = parseFloat(alturaStr);
                 if (isNaN(altura) || altura < 0) {
@@ -283,42 +369,19 @@
                     return;
                 }
 
-                let encontrado = false;
-
-                for (let i = 0; i < tabla.length; i++) {
-                    if (Math.abs(tabla[i][0] - altura) < 0.01) {
-                        resultValue.textContent = tabla[i][1].toFixed(2);
-                        resultUnit.textContent = 'litros';
-                        resultBox.classList.add('active');
-                        encontrado = true;
-                        break;
-                    }
-                }
-
-                if (!encontrado) {
-                    for (let i = 0; i < tabla.length - 1; i++) {
-                        if (altura >= tabla[i][0] && altura <= tabla[i + 1][0]) {
-                            const x1 = tabla[i][0], y1 = tabla[i][1];
-                            const x2 = tabla[i + 1][0], y2 = tabla[i + 1][1];
-                            const litrosInterpolado = y1 + (altura - x1) * (y2 - y1) / (x2 - x1);
-                            resultValue.textContent = litrosInterpolado.toFixed(2);
-                            resultUnit.textContent = 'litros';
-                            resultBox.classList.add('active');
-                            encontrado = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!encontrado) {
+                const res = alturaToLitros(tanque, altura);
+                if (!res.encontrado) {
                     errorMsg.textContent = `⚠️ La altura ${altura}cm está fuera de rango para el tanque ${tanque}.`;
                     errorMsg.classList.add('active');
+                    return;
                 }
 
+                resultValue.textContent = res.litros.toFixed(2);
+                resultUnit.textContent = 'litros';
+                resultBox.classList.add('active');
                 return;
             }
 
-            // MODO B: Litros -> Altura
             if (litrosStr !== '') {
                 const litros = parseFloat(litrosStr);
                 if (isNaN(litros) || litros < 0) {
@@ -327,43 +390,49 @@
                     return;
                 }
 
-                let encontrado = false;
-
-                for (let i = 0; i < tabla.length; i++) {
-                    if (Math.abs(tabla[i][1] - litros) < 0.01) {
-                        resultValue.textContent = tabla[i][0].toFixed(2);
-                        resultUnit.textContent = 'cm';
-                        resultBox.classList.add('active');
-                        encontrado = true;
-                        break;
-                    }
-                }
-
-                if (!encontrado) {
-                    for (let i = 0; i < tabla.length - 1; i++) {
-                        if (litros >= tabla[i][1] && litros <= tabla[i + 1][1]) {
-                            const y1 = tabla[i][1], x1 = tabla[i][0];
-                            const y2 = tabla[i + 1][1], x2 = tabla[i + 1][0];
-                            const alturaInterpolada = x1 + (litros - y1) * (x2 - x1) / (y2 - y1);
-                            resultValue.textContent = alturaInterpolada.toFixed(2);
-                            resultUnit.textContent = 'cm';
-                            resultBox.classList.add('active');
-                            encontrado = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!encontrado) {
+                const res = litrosToAltura(tanque, litros);
+                if (!res.encontrado) {
                     errorMsg.textContent = `⚠️ Los ${litros}L están fuera de rango para el tanque ${tanque}.`;
                     errorMsg.classList.add('active');
+                    return;
                 }
 
+                resultValue.textContent = res.altura.toFixed(2);
+                resultUnit.textContent = 'cm';
+                resultBox.classList.add('active');
                 return;
             }
 
-            // Ningún campo llenado
-            errorMsg.textContent = '⚠️ Ingresa ALTURA o LITROS para calcular.';
+            if (vacioStr !== '') {
+                const vacio = parseFloat(vacioStr);
+                if (isNaN(vacio) || vacio < 0) {
+                    errorMsg.textContent = '⚠️ Por favor, ingresa una medida de vacío válida.';
+                    errorMsg.classList.add('active');
+                    return;
+                }
+
+                const alturaTotal = alturasMaximas[tanque];
+                if (vacio > alturaTotal) {
+                    errorMsg.textContent = `⚠️ El vacío (${vacio}cm) supera la altura total del tanque (${alturaTotal}cm).`;
+                    errorMsg.classList.add('active');
+                    return;
+                }
+
+                const alturaLleno = alturaTotal - vacio;
+                const res = alturaToLitros(tanque, alturaLleno);
+                if (!res.encontrado) {
+                    errorMsg.textContent = `⚠️ La altura de lleno (${alturaLleno}cm) está fuera de rango para el tanque ${tanque}.`;
+                    errorMsg.classList.add('active');
+                    return;
+                }
+
+                resultValue.textContent = res.litros.toFixed(2);
+                resultUnit.textContent = 'litros llenos';
+                resultBox.classList.add('active');
+                return;
+            }
+
+            errorMsg.textContent = '⚠️ Ingresa ALTURA, LITROS o VACÍO para calcular.';
             errorMsg.classList.add('active');
         }
 
@@ -389,6 +458,9 @@
             if (e.key === 'Enter') buscar();
         });
         document.getElementById('litros').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') buscar();
+        });
+        document.getElementById('vacio').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') buscar();
         });
 
