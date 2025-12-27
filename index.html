@@ -118,8 +118,9 @@
         .table-preview {
             margin-top: 16px;
             border-radius: 8px;
-            overflow: hidden;
+            overflow: auto;
             border: 1px solid var(--color-border);
+            max-height: 320px;
         }
         .table-preview table {
             width: 100%;
@@ -276,7 +277,6 @@
             ]
         };
 
-        // alturas máximas por tanque (último valor de cada tabla)
         const alturasMaximas = {
             "250L": 83,
             "500L": 92.5,
@@ -355,12 +355,6 @@
             errorMsg.classList.remove('active');
             resultBox.classList.remove('active');
 
-            const tabla = datos[tanque];
-
-            // Prioridad de modos:
-            // 1) Altura -> Litros
-            // 2) Litros -> Altura
-            // 3) Vacío -> Litros llenos
             if (alturaStr !== '') {
                 const altura = parseFloat(alturaStr);
                 if (isNaN(altura) || altura < 0) {
@@ -442,12 +436,8 @@
             const tablePreview = document.getElementById('tablePreview');
 
             let html = '<table><thead><tr><th>Altura (cm)</th><th>Litros</th></tr></thead><tbody>';
-            const mostrar = Math.min(6, tabla.length);
-            for (let i = 0; i < mostrar; i++) {
+            for (let i = 0; i < tabla.length; i++) {
                 html += `<tr><td>${tabla[i][0]}</td><td>${tabla[i][1]}</td></tr>`;
-            }
-            if (tabla.length > 6) {
-                html += `<tr><td colspan="2">... y ${tabla.length - 6} datos más</td></tr>`;
             }
             html += '</tbody></table>';
             tablePreview.innerHTML = html;
@@ -464,7 +454,44 @@
             if (e.key === 'Enter') buscar();
         });
 
+        const inputAltura = document.getElementById('altura');
+        const inputLitros = document.getElementById('litros');
+        const inputVacio = document.getElementById('vacio');
+
+        inputAltura.addEventListener('input', () => {
+            if (inputAltura.value !== '') {
+                inputLitros.value = '';
+                inputVacio.value = '';
+            }
+        });
+
+        inputLitros.addEventListener('input', () => {
+            if (inputLitros.value !== '') {
+                inputAltura.value = '';
+                inputVacio.value = '';
+            }
+        });
+
+        inputVacio.addEventListener('input', () => {
+            if (inputVacio.value !== '') {
+                inputAltura.value = '';
+                inputLitros.value = '';
+            }
+        });
+
         actualizarTabla();
     </script>
+
+    <footer style="
+        text-align:center;
+        margin-top:20px;
+        padding:10px 0;
+        font-size:12px;
+        color:#888;
+    ">
+        © 2025 Andres_Gonzalez. Todos los derechos reservados. Desarrollado por Andres Felipe Gonzalez Espindola.
+    </footer>
 </body>
 </html>
+
+
