@@ -1,497 +1,941 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medidas Tanques - Búsqueda Rápida</title>
-    <style>
-        :root {
-            --color-bg: #f8f9fa;
-            --color-primary: #2196F3;
-            --color-primary-dark: #1976D2;
-            --color-success: #4CAF50;
-            --color-error: #f44336;
-            --color-text: #333;
-            --color-text-light: #666;
-            --color-border: #ddd;
-            --color-card: white;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: var(--color-bg);
-            color: var(--color-text);
-            padding: 12px;
-            line-height: 1.6;
-        }
-        .container { max-width: 500px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 24px; padding-top: 12px; }
-        header h1 { font-size: 24px; color: var(--color-primary); margin-bottom: 6px; }
-        header p { color: var(--color-text-light); font-size: 14px; }
-        .card {
-            background: var(--color-card);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-        .form-group { margin-bottom: 18px; }
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--color-text);
-            font-size: 14px;
-        }
-        select, input {
-            width: 100%;
-            padding: 12px 14px;
-            border: 2px solid var(--color-border);
-            border-radius: 8px;
-            font-size: 16px;
-            font-family: inherit;
-            color: var(--color-text);
-            background: white;
-            transition: border-color 0.3s, box-shadow 0.3s;
-        }
-        select:focus, input:focus {
-            outline: none;
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
-        }
-        input[type="number"] { font-size: 18px; }
-        .result-box {
-            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-            border-left: 4px solid var(--color-primary);
-            padding: 18px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 16px;
-            display: none;
-        }
-        .result-box.active { display: block; }
-        .result-label {
-            color: var(--color-text-light);
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
-        }
-        .result-value { font-size: 36px; font-weight: bold; color: var(--color-success); }
-        .result-unit { color: var(--color-text-light); font-size: 16px; margin-top: 4px; }
-        .error-message {
-            background: #ffebee;
-            color: var(--color-error);
-            padding: 12px 14px;
-            border-radius: 6px;
-            margin-top: 12px;
-            display: none;
-            font-size: 14px;
-            border-left: 4px solid var(--color-error);
-        }
-        .error-message.active { display: block; }
-        button {
-            width: 100%;
-            padding: 14px;
-            background: var(--color-primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.1s;
-            margin-top: 10px;
-        }
-        button:active { transform: scale(0.98); }
-        button:hover { background: var(--color-primary-dark); }
-        .info-box {
-            background: #f5f5f5;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: var(--color-text-light);
-            margin-top: 16px;
-            line-height: 1.8;
-        }
-        .info-box strong { color: var(--color-text); }
-        .table-preview {
-            margin-top: 16px;
-            border-radius: 8px;
-            overflow: auto;
-            border: 1px solid var(--color-border);
-            max-height: 320px;
-        }
-        .table-preview table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        .table-preview thead { background: var(--color-primary); color: white; }
-        .table-preview th, .table-preview td {
-            padding: 10px;
-            text-align: center;
-        }
-        .table-preview tbody tr:nth-child(odd) { background: #fafafa; }
-        .table-preview tbody tr:hover { background: #f0f0f0; }
-        @media (max-width: 480px) {
-            body { padding: 8px; }
-            .card { padding: 16px; }
-            header h1 { font-size: 22px; }
-            .result-value { font-size: 32px; }
-        }
-        .mode-note {
-            font-size: 12px;
-            color: #666;
-            margin-top: 4px;
-            line-height: 1.4;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#1976D2" />
+  <title>Medidas de Tanques</title>
+
+  <style>
+    :root{
+      --primary:#1976D2;
+      --primary-hover:#1565c0;
+      --bg2:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:#d7dde6;
+      --error:#c62828;
+      --shadow: 0 12px 35px rgba(2, 6, 23, 0.10);
+      --radius: 14px;
+      --s8:8px; --s12:12px; --s16:16px; --s20:20px;
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      color:var(--text);
+      background: linear-gradient(135deg, #f7fbff 0%, #e8f0fb 100%);
+      padding: 16px;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .container{
+      max-width: 980px;
+      margin: 0 auto;
+      padding-bottom: calc(92px + env(safe-area-inset-bottom));
+    }
+
+    header{margin-bottom: 16px;}
+    h1{margin:0;color:var(--primary);font-size:1.6rem;letter-spacing:-0.02em;}
+    .subtitle{margin:8px 0 0;color:var(--muted);line-height:1.35}
+
+    main{display:grid;gap:16px}
+
+    .card{
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: var(--s20);
+    }
+
+    .card-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .card h2{margin:0;font-size:1.05rem}
+    .muted{margin:6px 0 0;color:var(--muted);font-size:0.95rem;line-height:1.35}
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .col-12{grid-column: span 12;}
+    .col-6{grid-column: span 6;}
+
+    .field{display:flex;flex-direction:column;gap:8px;}
+    label{font-weight:900;font-size:0.93rem}
+    .help{margin:0;color:var(--muted);font-size:0.88rem;line-height:1.35}
+
+    input,select,button{
+      font-family: var(--font);
+      font-size: 16px; /* evita zoom iOS */
+    }
+  
+    select, input{
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#fbfcfe;
+      position: relative;
+      z-index: 2;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    select{
+      background-image:
+        linear-gradient(45deg, transparent 50%, #0f172a 50%),
+        linear-gradient(135deg, #0f172a 50%, transparent 50%);
+      background-position:
+        calc(100% - 18px) calc(1em + 2px),
+        calc(100% - 13px) calc(1em + 2px);
+      background-size: 5px 5px, 5px 5px;
+      background-repeat: no-repeat;
+      padding-right: 36px;
+    }
+
+    input:focus, select:focus, button:focus{
+      outline:none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(25,118,210,0.16);
+    }
+
+    .invalid{
+      border-color: rgba(198,40,40,0.55) !important;
+      box-shadow: 0 0 0 4px rgba(198,40,40,0.12) !important;
+      background:#fff7f7;
+    }
+
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+    .toggle{
+      display:flex;align-items:center;gap:8px;
+      padding:10px 12px;border-radius:12px;border:1px solid var(--border);
+      background:#f6f8fc;font-weight:900;cursor:pointer;user-select:none;
+      position: relative; z-index: 1;
+    }
+    .toggle input{width:auto;margin:0}
+
+    .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+    button{
+      border:none;border-radius:12px;padding:12px 14px;
+      cursor:pointer;font-weight:950;touch-action:manipulation;
+    }
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:hover{background:var(--primary-hover)}
+    .btn-secondary{background:#f3f6fb;color:var(--text);border:1px solid var(--border)}
+    .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+
+    .alert{
+      border-radius:12px;padding:12px 14px;border:1px solid var(--border);
+      background:#fafcff;font-size:0.92rem;line-height:1.35;margin-top:12px;
+    }
+    .alert.error{border-color: rgba(198,40,40,0.35); background: rgba(198,40,40,0.07);}
+    .alert strong{font-weight:950}
+
+    .result{display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+    .result.active{display:block}
+
+    .metrics{
+      display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin-top:12px;
+    }
+    .metric{
+      grid-column: span 3;
+      border:1px solid #d8eef7;
+      background: linear-gradient(135deg, #f4fbfe 0%, #f7fbff 100%);
+      border-radius:12px;padding:16px;min-height:74px;
+    }
+    .metric .k{color:var(--muted);font-size:0.85rem;margin-bottom:4px}
+    .metric .v{font-weight:950;font-size:1.05rem}
+    .metric .sub{margin-top:4px;font-size:0.85rem;color:var(--muted);font-family:var(--mono)}
+
+    details.card{padding:0;overflow:hidden}
+    details.card>summary{
+      list-style:none;cursor:pointer;padding:20px;user-select:none
+    }
+    details.card>summary::-webkit-details-marker{display:none}
+    .summary-row{display:flex;justify-content:space-between;gap:12px}
+    .chev{
+      width:14px;height:14px;border-right:2px solid var(--muted);
+      border-bottom:2px solid var(--muted);transform:rotate(45deg);margin-top:6px;
+      transition:transform .15s;
+    }
+    details[open] .chev{transform:rotate(225deg)}
+    .details-body{padding:0 20px 20px;border-top:1px solid var(--border)}
+
+    .bottom-bar{
+      position:fixed;left:0;right:0;bottom:0;
+      padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(255,255,255,0.96);
+      border-top:1px solid var(--border);
+      display:flex;gap:12px;z-index:99;
+    }
+    .bottom-bar button{flex:1;padding:14px;border-radius:14px}
+
+    footer{
+      margin-top:16px;text-align:center;color:var(--muted);font-size:0.9rem;
+      padding:16px 0;border-top:1px solid var(--border);
+    }
+
+    @media (max-width: 920px){
+      .col-6{grid-column: span 12;}
+      .metric{grid-column: span 6;}
+    }
+    @media (min-width: 900px){
+      .container{padding-bottom:0}
+      .bottom-bar{display:none}
+    }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <header>
-            <h1>🔍 Medidas Tanques</h1>
-            <p>Búsqueda automática de capacidad</p>
-        </header>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Medidas de Tanques</h1>
+        <p class="subtitle">
+          Calcula por <strong>interpolación lineal</strong> usando la tabla de calibración.
+        </p>
+      </div>
+    </header>
 
-        <div class="card">
-            <div class="form-group">
-                <label for="tanque">📦 Selecciona el tanque:</label>
-                <select id="tanque">
-                    <option value="250L">250L</option>
-                    <option value="500L">500L</option>
-                    <option value="1000L">1000L</option>
-                    <option value="2000L">2000L</option>
-                    <option value="5000L">5000L</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="altura">📏 Altura medida (cm):</label>
-                <input type="number" id="altura" placeholder="Ej: 39" min="0" step="0.1">
-            </div>
-
-            <div class="form-group">
-                <label for="litros">💧 Litros medidos (opcional):</label>
-                <input type="number" id="litros" placeholder="Ej: 400" min="0" step="0.1">
-                <div class="mode-note">
-                    • Si llenas ALTURA, calcula LITROS.<br>
-                    • Si dejas ALTURA vacío y llenas LITROS, calcula ALTURA (cm).
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="vacio">📉 Medida en vacío (cm):</label>
-                <input type="number" id="vacio" placeholder="Ej: 100" min="0" step="0.1">
-                <div class="mode-note">
-                    • Si llenas VACÍO, calcula los LITROS LLENOS.<br>
-                    • El vacío se mide desde el fondo hasta el nivel del líquido.
-                </div>
-            </div>
-
-            <button onclick="buscar()">🔎 Calcular</button>
-
-            <div class="result-box" id="resultBox">
-                <div class="result-label">Resultado:</div>
-                <div class="result-value" id="resultValue">—</div>
-                <div class="result-unit" id="resultUnit">litros</div>
-            </div>
-
-            <div class="error-message" id="errorMsg"></div>
-
-            <div class="info-box">
-                <strong>✓ Cómo usar:</strong><br>
-                1. Selecciona el tipo de tanque.<br>
-                2. Modo A: escribe ALTURA (cm) → obtienes LITROS.<br>
-                3. Modo B: deja ALTURA vacío y escribe LITROS → obtienes ALTURA (cm).<br>
-                4. Modo C: escribe VACÍO (cm) → obtienes LITROS LLENOS.<br>
-                5. Haz clic en “Calcular”.
-            </div>
+    <main>
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>1) Selección y cálculo</h2>
+            <p class="muted">Elige el tanque, el modo y escribe un valor.</p>
+          </div>
+          <div class="btns" style="margin-top:0">
+            <button class="btn-ghost" id="btnResetState" type="button">Restablecer</button>
+          </div>
         </div>
 
-        <div class="card">
-            <h3 style="margin-bottom: 14px; color: var(--color-primary);">📊 Previa de datos:</h3>
-            <div class="table-preview" id="tablePreview"></div>
+        <div class="grid">
+          <div class="field col-6">
+            <label for="tanque">Tanque</label>
+            <select id="tanque"></select>
+            <p class="help" id="tankMeta">—</p>
+          </div>
+
+          <div class="field col-6">
+            <label for="modo">Modo de cálculo</label>
+            <select id="modo">
+              <option value="altura">Altura (cm) → Litros</option>
+              <option value="litros">Litros → Altura (cm)</option>
+              <option value="vacio">Vacío (cm) → Litros</option>
+            </select>
+            <p class="help" id="modoHelp">—</p>
+          </div>
+
+          <div class="field col-12">
+            <label id="valorLabel" for="valor">Valor</label>
+            <input id="valor" type="text" inputmode="decimal" enterkeyhint="done" placeholder="Ej: 39" />
+            <p class="help" id="rango">—</p>
+
+            <div class="row" style="margin-top:12px;">
+              <label class="toggle">
+                <input type="checkbox" id="autoCalc" />
+                Vista previa automática
+              </label>
+
+              <label class="toggle">
+                <input type="checkbox" id="allowExtrap" />
+                Extrapolación ±2 cm (estimado)
+              </label>
+            </div>
+          </div>
         </div>
-    </div>
 
-    <script>
-        const datos = {
-            "250L": [
-                [4.5, 10], [9, 20], [13, 30], [17, 40], [21, 50],
-                [25, 60], [28.5, 70], [32, 80], [35.5, 90], [39, 100],
-                [42.5, 110], [46, 120], [49, 130], [52, 140], [56, 150],
-                [59, 160], [62, 170], [65, 180], [68, 190], [71, 200],
-                [74, 210], [76.5, 220], [79, 230], [81, 240], [83, 250]
-            ],
-            "500L": [
-                [0,     0],
-                [21,   100],
-                [30.5, 150],
-                [40,   200],
-                [49,   250],
-                [58,   300],
-                [66,   350],
-                [74,   400],
-                [83.25,450],
-                [92.5, 500]
-            ],
-            "1000L": [
-                [13.5, 100], [20.3, 150], [27, 200], [34.5, 250], [42, 300],
-                [50, 350], [58, 400], [65, 450], [72, 500], [77, 550],
-                [82, 600], [87.5, 650], [93, 700], [99, 750], [105, 800],
-                [110, 850], [115, 900], [121, 950], [127, 1000]
-            ],
-            "2000L": [
-                [12, 100], [18, 150], [24, 200], [31.1, 250], [38.2, 300],
-                [39.9, 350], [41.5, 400], [45.9, 450], [50.3, 500], [54.5, 550],
-                [59, 600], [63.5, 650], [68, 700], [72, 750], [76.5, 800],
-                [80.2, 850], [84, 900], [89, 950], [92, 1000], [96, 1050],
-                [100, 1100], [104, 1150], [108, 1200], [112, 1250], [117, 1300],
-                [121, 1350], [125, 1400], [128, 1450], [132, 1500], [135, 1550],
-                [138, 1600], [142, 1650], [145, 1700], [148.6, 1750], [152, 1800],
-                [156, 1850], [158, 1900], [161, 1950], [164, 2000]
-            ],
-            "5000L": [
-                [2.5, 50], [5, 100], [7.5, 150], [10, 200], [12.5, 250],
-                [14.5, 300], [16.5, 350], [18.5, 400], [22.2, 450], [24.5, 500],
-                [26.7, 550], [27.5, 600], [29.2, 650], [30.7, 700], [32.3, 750],
-                [34, 800], [36.5, 850], [39, 900], [41.5, 950], [44, 1000],
-                [46, 1050], [48, 1100], [50, 1150], [52, 1200], [54.2, 1250],
-                [56.2, 1300], [58.4, 1350], [60.5, 1400], [62.4, 1450], [64.5, 1500],
-                [66.5, 1550], [68, 1600], [70, 1650], [72, 1700], [74, 1750],
-                [76, 1800], [77.1, 1850], [79.1, 1900], [81.7, 1950], [83.7, 2000],
-                [85.4, 2050], [87.1, 2100], [88.8, 2150], [90.5, 2200], [92.6, 2250],
-                [94.7, 2300], [96.8, 2350], [99, 2400], [100.7, 2450], [102.5, 2500],
-                [104.2, 2550], [106, 2600], [108, 2650], [110, 2700], [112, 2750],
-                [114, 2800], [115.7, 2850], [117.2, 2900], [119.2, 2950], [121, 3000],
-                [122.7, 3050], [124.5, 3100], [126.2, 3150], [128, 3200], [129.7, 3250],
-                [131.2, 3300], [133.2, 3350], [135, 3400], [136.7, 3450], [138.4, 3500],
-                [140.2, 3550], [142, 3600], [143.7, 3650], [145.5, 3700], [147.2, 3750],
-                [149, 3800], [150.7, 3850], [152.2, 3900], [154.2, 3950], [156, 4000],
-                [158, 4050], [160, 4100], [162, 4150], [164, 4200], [166.7, 4250],
-                [168.4, 4300], [170.2, 4350], [171, 4400], [173, 4450], [175, 4500],
-                [177, 4550], [179, 4600], [181, 4650], [183, 4700], [185, 4750],
-                [187, 4800], [188.8, 4850], [190.7, 4900], [192.6, 4950], [194.5, 5000]
-            ]
-        };
+        <div class="btns">
+          <button class="btn-primary" id="btnCalcular" type="button">Calcular y guardar</button>
+          <button class="btn-secondary" id="btnLimpiar" type="button">Limpiar</button>
+        </div>
 
-        const alturasMaximas = {
-            "250L": 83,
-            "500L": 92.5,
-            "1000L": 127,
-            "2000L": 164,
-            "5000L": 194.5
-        };
+        <div class="alert error" id="alertError" hidden></div>
+        <div class="alert" id="alertWarning" hidden></div>
 
-        function alturaToLitros(tanque, altura) {
-            const tabla = datos[tanque];
-            let encontrado = false;
-            let litros = null;
+        <div class="result" id="resultado" aria-live="polite">
+          <div class="alert">
+            <strong id="resTitulo">Resultado</strong>
+            <div class="help" id="resSubtitulo" style="margin-top:6px;">—</div>
+          </div>
 
-            for (let i = 0; i < tabla.length; i++) {
-                if (Math.abs(tabla[i][0] - altura) < 0.01) {
-                    litros = tabla[i][1];
-                    encontrado = true;
-                    break;
-                }
-            }
+          <div class="metrics">
+            <div class="metric">
+              <div class="k">Altura (cm)</div>
+              <div class="v" id="outAltura">—</div>
+              <div class="sub" id="outAlturaSub">—</div>
+            </div>
+            <div class="metric">
+              <div class="k">Litros (L)</div>
+              <div class="v" id="outLitros">—</div>
+              <div class="sub" id="outLitrosSub">—</div>
+            </div>
+            <div class="metric">
+              <div class="k">Vacío (cm)</div>
+              <div class="v" id="outVacio">—</div>
+              <div class="sub" id="outVacioSub">—</div>
+            </div>
+            <div class="metric">
+              <div class="k">% de capacidad</div>
+              <div class="v" id="outPct">—</div>
+              <div class="sub" id="outPctSub">—</div>
+            </div>
+          </div>
 
-            if (!encontrado) {
-                for (let i = 0; i < tabla.length - 1; i++) {
-                    if (altura >= tabla[i][0] && altura <= tabla[i + 1][0]) {
-                        const x1 = tabla[i][0], y1 = tabla[i][1];
-                        const x2 = tabla[i + 1][0], y2 = tabla[i + 1][1];
-                        litros = y1 + (altura - x1) * (y2 - y1) / (x2 - x1);
-                        encontrado = true;
-                        break;
-                    }
-                }
-            }
+          <div class="help" id="toast" style="margin-top:12px;color:var(--muted);"></div>
+        </div>
+      </section>
 
-            return { encontrado, litros };
-        }
+      <details class="card" id="detailsTable" open>
+        <summary>
+          <div class="summary-row">
+            <div>
+              <h2>2) Tabla del tanque seleccionado</h2>
+              <p class="muted"> Se puede plegar para ahorrar espacio.</p>
+            </div>
+            <div class="chev" aria-hidden="true"></div>
+          </div>
+        </summary>
+        <div class="details-body">
+          <div id="tablaDatos"></div>
+        </div>
+      </details>
 
-        function litrosToAltura(tanque, litrosBuscados) {
-            const tabla = datos[tanque];
-            let encontrado = false;
-            let altura = null;
+      <details class="card" id="detailsHistory" open>
+        <summary>
+          <div class="summary-row">
+            <div>
+              <h2>3) Histórico </h2>
+              <p class="muted">Se guarda .</p>
+            </div>
+            <div class="chev" aria-hidden="true"></div>
+          </div>
+        </summary>
+        <div class="details-body">
+          <div id="historial"></div>
+          <div class="btns" style="margin-top:12px;">
+            <button class="btn-secondary" id="btnHistCopy" type="button">📋 Copiar</button>
+            <button class="btn-secondary" id="btnHistCsv" type="button">⬇️ CSV</button>
+            <button class="btn-ghost" id="btnHistClear" type="button">Limpiar</button>
+          </div>
+        </div>
+      </details>
+    </main>
 
-            for (let i = 0; i < tabla.length; i++) {
-                if (Math.abs(tabla[i][1] - litrosBuscados) < 0.01) {
-                    altura = tabla[i][0];
-                    encontrado = true;
-                    break;
-                }
-            }
-
-            if (!encontrado) {
-                for (let i = 0; i < tabla.length - 1; i++) {
-                    if (litrosBuscados >= tabla[i][1] && litrosBuscados <= tabla[i + 1][1]) {
-                        const y1 = tabla[i][1], x1 = tabla[i][0];
-                        const y2 = tabla[i + 1][1], x2 = tabla[i + 1][0];
-                        altura = x1 + (litrosBuscados - y1) * (x2 - x1) / (y2 - y1);
-                        encontrado = true;
-                        break;
-                    }
-                }
-            }
-
-            return { encontrado, altura };
-        }
-
-        function buscar() {
-            const tanque = document.getElementById('tanque').value;
-            const alturaStr = document.getElementById('altura').value;
-            const litrosStr = document.getElementById('litros').value;
-            const vacioStr = document.getElementById('vacio').value;
-
-            const resultBox = document.getElementById('resultBox');
-            const resultValue = document.getElementById('resultValue');
-            const resultUnit = document.getElementById('resultUnit');
-            const errorMsg = document.getElementById('errorMsg');
-
-            errorMsg.classList.remove('active');
-            resultBox.classList.remove('active');
-
-            if (alturaStr !== '') {
-                const altura = parseFloat(alturaStr);
-                if (isNaN(altura) || altura < 0) {
-                    errorMsg.textContent = '⚠️ Por favor, ingresa una altura válida.';
-                    errorMsg.classList.add('active');
-                    return;
-                }
-
-                const res = alturaToLitros(tanque, altura);
-                if (!res.encontrado) {
-                    errorMsg.textContent = `⚠️ La altura ${altura}cm está fuera de rango para el tanque ${tanque}.`;
-                    errorMsg.classList.add('active');
-                    return;
-                }
-
-                resultValue.textContent = res.litros.toFixed(2);
-                resultUnit.textContent = 'litros';
-                resultBox.classList.add('active');
-                return;
-            }
-
-            if (litrosStr !== '') {
-                const litros = parseFloat(litrosStr);
-                if (isNaN(litros) || litros < 0) {
-                    errorMsg.textContent = '⚠️ Por favor, ingresa una cantidad de litros válida.';
-                    errorMsg.classList.add('active');
-                    return;
-                }
-
-                const res = litrosToAltura(tanque, litros);
-                if (!res.encontrado) {
-                    errorMsg.textContent = `⚠️ Los ${litros}L están fuera de rango para el tanque ${tanque}.`;
-                    errorMsg.classList.add('active');
-                    return;
-                }
-
-                resultValue.textContent = res.altura.toFixed(2);
-                resultUnit.textContent = 'cm';
-                resultBox.classList.add('active');
-                return;
-            }
-
-            if (vacioStr !== '') {
-                const vacio = parseFloat(vacioStr);
-                if (isNaN(vacio) || vacio < 0) {
-                    errorMsg.textContent = '⚠️ Por favor, ingresa una medida de vacío válida.';
-                    errorMsg.classList.add('active');
-                    return;
-                }
-
-                const alturaTotal = alturasMaximas[tanque];
-                if (vacio > alturaTotal) {
-                    errorMsg.textContent = `⚠️ El vacío (${vacio}cm) supera la altura total del tanque (${alturaTotal}cm).`;
-                    errorMsg.classList.add('active');
-                    return;
-                }
-
-                const alturaLleno = alturaTotal - vacio;
-                const res = alturaToLitros(tanque, alturaLleno);
-                if (!res.encontrado) {
-                    errorMsg.textContent = `⚠️ La altura de lleno (${alturaLleno}cm) está fuera de rango para el tanque ${tanque}.`;
-                    errorMsg.classList.add('active');
-                    return;
-                }
-
-                resultValue.textContent = res.litros.toFixed(2);
-                resultUnit.textContent = 'litros llenos';
-                resultBox.classList.add('active');
-                return;
-            }
-
-            errorMsg.textContent = '⚠️ Ingresa ALTURA, LITROS o VACÍO para calcular.';
-            errorMsg.classList.add('active');
-        }
-
-        function actualizarTabla() {
-            const tanque = document.getElementById('tanque').value;
-            const tabla = datos[tanque];
-            const tablePreview = document.getElementById('tablePreview');
-
-            let html = '<table><thead><tr><th>Altura (cm)</th><th>Litros</th></tr></thead><tbody>';
-            for (let i = 0; i < tabla.length; i++) {
-                html += `<tr><td>${tabla[i][0]}</td><td>${tabla[i][1]}</td></tr>`;
-            }
-            html += '</tbody></table>';
-            tablePreview.innerHTML = html;
-        }
-
-        document.getElementById('tanque').addEventListener('change', actualizarTabla);
-        document.getElementById('altura').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') buscar();
-        });
-        document.getElementById('litros').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') buscar();
-        });
-        document.getElementById('vacio').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') buscar();
-        });
-
-        const inputAltura = document.getElementById('altura');
-        const inputLitros = document.getElementById('litros');
-        const inputVacio = document.getElementById('vacio');
-
-        inputAltura.addEventListener('input', () => {
-            if (inputAltura.value !== '') {
-                inputLitros.value = '';
-                inputVacio.value = '';
-            }
-        });
-
-        inputLitros.addEventListener('input', () => {
-            if (inputLitros.value !== '') {
-                inputAltura.value = '';
-                inputVacio.value = '';
-            }
-        });
-
-        inputVacio.addEventListener('input', () => {
-            if (inputVacio.value !== '') {
-                inputAltura.value = '';
-                inputLitros.value = '';
-            }
-        });
-
-        actualizarTabla();
-    </script>
-
-    <footer style="
-        text-align:center;
-        margin-top:20px;
-        padding:10px 0;
-        font-size:12px;
-        color:#888;
-    ">
-        © 2025 Andres_Gonzalez. Todos los derechos reservados. Desarrollado por Andres Felipe Gonzalez Espindola.
+    <footer>
+      © <span id="anio"></span> – Desarrollado por <strong>Andres Felipe Gonzalez Espindola</strong>
     </footer>
+  </div>
+
+  <div class="bottom-bar" aria-label="Acciones rápidas">
+    <button class="btn-primary" id="btnCalcularBottom" type="button">Calcular</button>
+    <button class="btn-secondary" id="btnLimpiarBottom" type="button">Limpiar</button>
+  </div>
+
+  <script>
+    (function(){
+      "use strict";
+
+      const MAX_HIST = 20;
+      const LS_STATE = "tankcalc_state_v3";
+      const LS_HIST  = "tankcalc_history_v3";
+      const EXTRAP_TOL_CM = 2;
+
+      const DATA = {
+        "250L":[[4.5,10],[9,20],[13,30],[17,40],[21,50],[25,60],[28.5,70],[32,80],[35.5,90],[39,100],[42.5,110],[46,120],[49,130],[52,140],[56,150],[59,160],[62,170],[65,180],[68,190],[71,200],[74,210],[76.5,220],[79,230],[81,240],[83,250]],
+        "500L":[[0,0],[21,100],[30.5,150],[40,200],[49,250],[58,300],[66,350],[74,400],[83.25,450],[92.5,500]],
+        "1000L":[[13.5,100],[20.3,150],[27,200],[34.5,250],[42,300],[50,350],[58,400],[65,450],[72,500],[77,550],[82,600],[87.5,650],[93,700],[99,750],[105,800],[110,850],[115,900],[121,950],[127,1000]],
+        "2000L":[[12,100],[18,150],[24,200],[31.1,250],[38.2,300],[39.9,350],[41.5,400],[45.9,450],[50.3,500],[54.5,550],[59,600],[63.5,650],[68,700],[72,750],[76.5,800],[80.2,850],[84,900],[89,950],[92,1000],[96,1050],[100,1100],[104,1150],[108,1200],[112,1250],[117,1300],[121,1350],[125,1400],[128,1450],[132,1500],[135,1550],[138,1600],[142,1650],[145,1700],[148.6,1750],[152,1800],[156,1850],[158,1900],[161,1950],[164,2000]],
+        "5000L":[[2.5,50],[5,100],[7.5,150],[10,200],[12.5,250],[14.5,300],[16.5,350],[18.5,400],[22.2,450],[24.5,500],[26.7,550],[27.5,600],[29.2,650],[30.7,700],[32.3,750],[34,800],[36.5,850],[39,900],[41.5,950],[44,1000],[46,1050],[48,1100],[50,1150],[52,1200],[54.2,1250],[56.2,1300],[58.4,1350],[60.5,1400],[62.4,1450],[64.5,1500],[66.5,1550],[68,1600],[70,1650],[72,1700],[74,1750],[76,1800],[77.1,1850],[79.1,1900],[81.7,1950],[83.7,2000],[85.4,2050],[87.1,2100],[88.8,2150],[90.5,2200],[92.6,2250],[94.7,2300],[96.8,2350],[99,2400],[100.7,2450],[102.5,2500],[104.2,2550],[106,2600],[108,2650],[110,2700],[112,2750],[114,2800],[115.7,2850],[117.2,2900],[119.2,2950],[121,3000],[122.7,3050],[124.5,3100],[126.2,3150],[128,3200],[129.7,3250],[131.2,3300],[133.2,3350],[135,3400],[136.7,3450],[138.4,3500],[140.2,3550],[142,3600],[143.7,3650],[145.5,3700],[147.2,3750],[149,3800],[150.7,3850],[152.2,3900],[154.2,3950],[156,4000],[158,4050],[160,4100],[162,4150],[164,4200],[166.7,4250],[168.4,4300],[170.2,4350],[171,4400],[173,4450],[175,4500],[177,4550],[179,4600],[181,4650],[183,4700],[185,4750],[187,4800],[188.8,4850],[190.7,4900],[192.6,4950],[194.5,5000]]
+      };
+
+      const el = {
+        tanque: document.getElementById("tanque"),
+        modo: document.getElementById("modo"),
+        valor: document.getElementById("valor"),
+        valorLabel: document.getElementById("valorLabel"),
+        rango: document.getElementById("rango"),
+        tankMeta: document.getElementById("tankMeta"),
+        modoHelp: document.getElementById("modoHelp"),
+        autoCalc: document.getElementById("autoCalc"),
+        allowExtrap: document.getElementById("allowExtrap"),
+
+        btnCalcular: document.getElementById("btnCalcular"),
+        btnLimpiar: document.getElementById("btnLimpiar"),
+        btnCalcularBottom: document.getElementById("btnCalcularBottom"),
+        btnLimpiarBottom: document.getElementById("btnLimpiarBottom"),
+        btnResetState: document.getElementById("btnResetState"),
+
+        alertError: document.getElementById("alertError"),
+        alertWarning: document.getElementById("alertWarning"),
+
+        resultado: document.getElementById("resultado"),
+        resTitulo: document.getElementById("resTitulo"),
+        resSubtitulo: document.getElementById("resSubtitulo"),
+        outAltura: document.getElementById("outAltura"),
+        outAlturaSub: document.getElementById("outAlturaSub"),
+        outLitros: document.getElementById("outLitros"),
+        outLitrosSub: document.getElementById("outLitrosSub"),
+        outVacio: document.getElementById("outVacio"),
+        outVacioSub: document.getElementById("outVacioSub"),
+        outPct: document.getElementById("outPct"),
+        outPctSub: document.getElementById("outPctSub"),
+        toast: document.getElementById("toast"),
+
+        tablaDatos: document.getElementById("tablaDatos"),
+        historial: document.getElementById("historial"),
+        btnHistClear: document.getElementById("btnHistClear"),
+        btnHistCsv: document.getElementById("btnHistCsv"),
+        btnHistCopy: document.getElementById("btnHistCopy"),
+
+        anio: document.getElementById("anio"),
+      };
+
+      const nf2 = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 });
+      const mqMobile = window.matchMedia("(max-width: 720px)");
+
+      function parseNumber(value){
+        const s = String(value ?? "").trim().replace(/\s+/g, "").replace(",", ".");
+        if (!s) return NaN;
+        const n = Number(s);
+        return Number.isFinite(n) ? n : NaN;
+      }
+
+      function showError(msg){
+        el.alertError.textContent = msg;
+        el.alertError.hidden = false;
+      }
+      function clearError(){
+        el.alertError.hidden = true;
+        el.alertError.textContent = "";
+      }
+      function showWarning(msg){
+        el.alertWarning.textContent = msg;
+        el.alertWarning.hidden = false;
+      }
+      function clearWarning(){
+        el.alertWarning.hidden = true;
+        el.alertWarning.textContent = "";
+      }
+      function toast(msg){ el.toast.textContent = msg; }
+
+      function downloadFile(filename, mime, content){
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      const tankCache = new Map();
+      function getTank(key){
+        if (tankCache.has(key)) return tankCache.get(key);
+
+        const points = DATA[key]
+          .map(([h,l]) => ({ h: Number(h), l: Number(l) }))
+          .sort((a,b) => a.h - b.h);
+
+        const minH = points[0].h;
+        const maxH = points[points.length - 1].h;
+        const minL = points[0].l;
+        const maxL = points[points.length - 1].l;
+
+        const tank = { key, points, minH, maxH, minL, maxL, count: points.length };
+        tankCache.set(key, tank);
+        return tank;
+      }
+
+      function getHeightRange(tank, allowExtrap){
+        const min = allowExtrap ? Math.max(0, tank.minH - EXTRAP_TOL_CM) : tank.minH;
+        const max = allowExtrap ? (tank.maxH + EXTRAP_TOL_CM) : tank.maxH;
+        return { min, max };
+      }
+
+      function getLitersTolFrom2cm(tank){
+        const pts = tank.points;
+        if (pts.length < 2) return { low: 0, high: 0 };
+
+        const p0 = pts[0], p1 = pts[1];
+        const pn2 = pts[pts.length - 2], pn1 = pts[pts.length - 1];
+
+        const dhLow = (p1.h - p0.h);
+        const dhHigh = (pn1.h - pn2.h);
+
+        const slopeLow = dhLow !== 0 ? (p1.l - p0.l) / dhLow : 0;
+        const slopeHigh = dhHigh !== 0 ? (pn1.l - pn2.l) / dhHigh : 0;
+
+        return {
+          low: Math.abs(slopeLow) * EXTRAP_TOL_CM,
+          high: Math.abs(slopeHigh) * EXTRAP_TOL_CM
+        };
+      }
+
+      function getLitersRange(tank, allowExtrap){
+        if (!allowExtrap) return { min: tank.minL, max: tank.maxL };
+        const tol = getLitersTolFrom2cm(tank);
+        return { min: Math.max(0, tank.minL - tol.low), max: tank.maxL + tol.high };
+      }
+
+      function interpWithExtrap(points, x, xKey, yKey, allowExtrap, tol){
+        const n = points.length;
+        const minX = points[0][xKey];
+        const maxX = points[n - 1][xKey];
+
+        const tolLow = typeof tol === "number" ? tol : (tol?.low ?? 0);
+        const tolHigh = typeof tol === "number" ? tol : (tol?.high ?? 0);
+
+        if (x < minX){
+          if (!allowExtrap) return null;
+          if (x < (minX - tolLow)) return null;
+          const a = points[0], b = points[1];
+          const denom = (b[xKey] - a[xKey]);
+          if (denom === 0) return null;
+          return { value: a[yKey] + (x - a[xKey]) * (b[yKey] - a[yKey]) / denom, extrapolated:true };
+        }
+
+        if (x > maxX){
+          if (!allowExtrap) return null;
+          if (x > (maxX + tolHigh)) return null;
+          const a = points[n-2], b = points[n-1];
+          const denom = (b[xKey] - a[xKey]);
+          if (denom === 0) return null;
+          return { value: a[yKey] + (x - a[xKey]) * (b[yKey] - a[yKey]) / denom, extrapolated:true };
+        }
+
+        for (let i=0;i<n-1;i++){
+          const x0 = points[i][xKey], x1 = points[i+1][xKey];
+          if (x >= x0 && x <= x1){
+            const y0 = points[i][yKey], y1 = points[i+1][yKey];
+            const t = (x - x0) / (x1 - x0);
+            return { value: y0 + t*(y1-y0), extrapolated:false };
+          }
+        }
+        return null;
+      }
+
+      function modeText(mode){
+        if (mode === "altura") return "Altura → Litros";
+        if (mode === "litros") return "Litros → Altura";
+        return "Vacío → Litros";
+      }
+
+      function validateInput(tank, mode, v, allowExtrap){
+        if (!Number.isFinite(v)) return "Ingresa un número válido (coma o punto).";
+
+        if (mode === "altura"){
+          if (v < 0) return "La altura no puede ser negativa.";
+          const r = getHeightRange(tank, allowExtrap);
+          if (v < r.min || v > r.max){
+            return allowExtrap
+              ? `Altura fuera del rango permitido. Calibrado: ${nf2.format(tank.minH)}–${nf2.format(tank.maxH)} cm. Con extrap.: ${nf2.format(r.min)}–${nf2.format(r.max)} cm.`
+              : `Altura fuera de rango. Rango: ${nf2.format(tank.minH)}–${nf2.format(tank.maxH)} cm.`;
+          }
+          return null;
+        }
+
+        if (mode === "litros"){
+          if (v < 0) return "Los litros no pueden ser negativos.";
+          const r = getLitersRange(tank, allowExtrap);
+          if (v < r.min || v > r.max){
+            return allowExtrap
+              ? `Litros fuera del rango permitido. Calibrado: ${nf2.format(tank.minL)}–${nf2.format(tank.maxL)} L. Con extrap.: ${nf2.format(r.min)}–${nf2.format(r.max)} L.`
+              : `Litros fuera de rango. Rango: ${nf2.format(tank.minL)}–${nf2.format(tank.maxL)} L.`;
+          }
+          return null;
+        }
+
+        // vacío
+        const minEmpty = allowExtrap ? -EXTRAP_TOL_CM : 0;
+        const heightRange = getHeightRange(tank, allowExtrap);
+        const maxEmpty = tank.maxH - heightRange.min;
+        if (v < minEmpty || v > maxEmpty){
+          return allowExtrap
+            ? `Vacío fuera del rango permitido. Calibrado: 0–${nf2.format(tank.maxH - tank.minH)} cm. Con extrap.: ${nf2.format(minEmpty)}–${nf2.format(maxEmpty)} cm.`
+            : `Vacío fuera de rango. Rango: 0–${nf2.format(tank.maxH - tank.minH)} cm.`;
+        }
+        return null;
+      }
+
+      function computeResult(tank, mode, v, allowExtrap){
+        let h=null, l=null, extrap=false;
+
+        if (mode === "altura"){
+          h = v;
+          const r = interpWithExtrap(tank.points, h, "h", "l", allowExtrap, EXTRAP_TOL_CM);
+          if (!r) return null;
+          l = r.value; extrap = r.extrapolated;
+        } else if (mode === "litros"){
+          l = v;
+          const tolL = getLitersTolFrom2cm(tank);
+          const r = interpWithExtrap(tank.points, l, "l", "h", allowExtrap, {low: tolL.low, high: tolL.high});
+          if (!r) return null;
+          h = r.value; extrap = r.extrapolated;
+        } else {
+          const emptyInput = v;
+          h = tank.maxH - emptyInput;
+          const r = interpWithExtrap(tank.points, h, "h", "l", allowExtrap, EXTRAP_TOL_CM);
+          if (!r) return null;
+          l = r.value; extrap = r.extrapolated;
+        }
+
+        if (Number.isFinite(l) && l < 0){ l = 0; extrap = true; }
+
+        const empty = tank.maxH - h;
+        const pct = (tank.maxL>0) ? (l / tank.maxL) * 100 : NaN;
+        return { h, l, empty, pct, extrapolated: extrap };
+      }
+
+      function updateTankMeta(){
+        const tank = getTank(el.tanque.value);
+        el.tankMeta.textContent = `Altura calibrada: ${nf2.format(tank.minH)}–${nf2.format(tank.maxH)} cm • Capacidad (tabla): ${nf2.format(tank.maxL)} L • Filas: ${tank.count}`;
+      }
+
+      function updateModeUI(){
+        const mode = el.modo.value;
+        const tank = getTank(el.tanque.value);
+        const allowExtrap = el.allowExtrap.checked;
+
+        el.valor.classList.remove("invalid");
+        clearError(); clearWarning(); toast("");
+
+        if (mode === "altura"){
+          el.valorLabel.textContent = "Altura (cm)";
+          el.valor.placeholder = "Ej: 39";
+          el.modoHelp.textContent = "Ingresa altura y obtén litros + vacío + %.";
+          const r = getHeightRange(tank, allowExtrap);
+          el.rango.textContent = allowExtrap
+            ? `Calibrado: ${nf2.format(tank.minH)}–${nf2.format(tank.maxH)} cm • Extrap: ${nf2.format(r.min)}–${nf2.format(r.max)} cm.`
+            : `Calibrado: ${nf2.format(tank.minH)}–${nf2.format(tank.maxH)} cm.`;
+        } else if (mode === "litros"){
+          el.valorLabel.textContent = "Litros (L)";
+          el.valor.placeholder = "Ej: 400";
+          el.modoHelp.textContent = "Ingresa litros y obtén altura + vacío + %.";
+          const r = getLitersRange(tank, allowExtrap);
+          el.rango.textContent = allowExtrap
+            ? `Calibrado: ${nf2.format(tank.minL)}–${nf2.format(tank.maxL)} L • Extrap: ${nf2.format(r.min)}–${nf2.format(r.max)} L.`
+            : `Calibrado: ${nf2.format(tank.minL)}–${nf2.format(tank.maxL)} L.`;
+        } else {
+          el.valorLabel.textContent = "Vacío (cm)";
+          el.valor.placeholder = "Ej: 100";
+          el.modoHelp.textContent = "Ingresa vacío y obtén litros + altura + %.";
+          const minEmpty = allowExtrap ? -EXTRAP_TOL_CM : 0;
+          const hr = getHeightRange(tank, allowExtrap);
+          const maxEmpty = tank.maxH - hr.min;
+          el.rango.textContent = allowExtrap
+            ? `Calibrado: 0–${nf2.format(tank.maxH - tank.minH)} cm • Extrap: ${nf2.format(minEmpty)}–${nf2.format(maxEmpty)} cm.`
+            : `Calibrado: 0–${nf2.format(tank.maxH - tank.minH)} cm.`;
+        }
+      }
+
+      function hideResult(){
+        el.resultado.classList.remove("active");
+        el.outAltura.textContent = "—";
+        el.outLitros.textContent = "—";
+        el.outVacio.textContent = "—";
+        el.outPct.textContent = "—";
+        el.resSubtitulo.textContent = "—";
+        toast("");
+      }
+
+      function showResult(result, mode, inputValue, isSaved){
+        const tank = getTank(el.tanque.value);
+        el.resultado.classList.add("active");
+        el.resTitulo.textContent = `Resultado • ${tank.key}`;
+
+        const extra = result.extrapolated ? `  Estimado por extrapolación (±${EXTRAP_TOL_CM} cm).` : "";
+        el.resSubtitulo.textContent =
+          `Modo: ${modeText(mode)} • Entrada: ${nf2.format(inputValue)} • Interpolación lineal.${extra} ` +
+          (isSaved ? "Guardado en historial." : "Vista previa.");
+
+        el.outAltura.textContent = `${nf2.format(result.h)} cm`;
+        el.outLitros.textContent = `${nf2.format(result.l)} L`;
+        el.outVacio.textContent  = `${nf2.format(result.empty)} cm`;
+        el.outPct.textContent    = `${nf2.format(result.pct)}%`;
+
+        toast(isSaved ? "✅ Cálculo guardado." : "Vista previa actualizada.");
+      }
+
+      function renderTable(){
+        const tank = getTank(el.tanque.value);
+
+        let html = "<div class='alert'><strong>Tabla</strong><br><span style='color:var(--muted)'>Altura (cm) ↔ Litros (L)</span></div>";
+        html += "<div style='margin-top:12px; overflow:auto; border:1px solid var(--border); border-radius:12px; background:#fff; max-height:420px;'>";
+        html += "<table style='width:100%; border-collapse:collapse; min-width:520px'>";
+        html += "<thead><tr style='background:var(--primary); color:#fff'><th style='padding:12px'>Altura</th><th style='padding:12px'>Litros</th></tr></thead><tbody>";
+
+        tank.points.forEach(p=>{
+          html += `<tr><td style="padding:10px; text-align:center; border-bottom:1px solid #eef2f7">${p.h}</td><td style="padding:10px; text-align:center; border-bottom:1px solid #eef2f7">${p.l}</td></tr>`;
+        });
+
+        html += "</tbody></table></div>";
+        el.tablaDatos.innerHTML = html;
+      }
+
+      function loadHistory(){
+        try{
+          const raw = localStorage.getItem(LS_HIST);
+          const arr = raw ? JSON.parse(raw) : [];
+          return Array.isArray(arr) ? arr : [];
+        }catch{ return []; }
+      }
+      function saveHistory(arr){
+        localStorage.setItem(LS_HIST, JSON.stringify(arr.slice(0, MAX_HIST)));
+      }
+      function addHistoryEntry(entry){
+        const h = loadHistory();
+        h.unshift(entry);
+        saveHistory(h);
+      }
+
+      function renderHistory(){
+        const h = loadHistory();
+        if (!h.length){
+          el.historial.innerHTML = "<div class='alert'><strong>Sin registros</strong></div>";
+          return;
+        }
+        let html = "<div style='display:grid; gap:12px; margin-top:6px'>";
+        h.forEach(r=>{
+          html += `
+            <div style="border:1px solid var(--border); border-radius:14px; padding:12px; background:#fff">
+              <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap">
+                <div><div style="color:var(--muted); font-size:.82rem">Fecha</div><div style="font-weight:950">${r.fecha}</div></div>
+                <div><div style="color:var(--muted); font-size:.82rem">Tanque</div><div style="font-weight:950">${r.tanque}</div></div>
+              </div>
+              <div style="margin-top:8px; color:var(--muted)"><strong>${r.modo}</strong> • Entrada: <strong>${r.entrada}</strong></div>
+              <div style="margin-top:8px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; color:var(--muted)">
+                <span>Altura: <strong>${r.altura} cm</strong></span>
+                <span>Litros: <strong>${r.litros} L</strong></span>
+                <span>Vacío: <strong>${r.vacio} cm</strong></span>
+                <span>%: <strong>${r.pct}</strong></span>
+              </div>
+            </div>
+          `;
+        });
+        html += "</div>";
+        el.historial.innerHTML = html;
+      }
+
+      async function copyHistory(){
+        const h = loadHistory();
+        if (!h.length){ toast("No hay historial para copiar."); return; }
+        let text = "=== HISTORIAL TANQUES ===\n\n";
+        for (const r of h){
+          text += `${r.fecha} | ${r.tanque} | ${r.modo} | entrada: ${r.entrada} | altura: ${r.altura} | litros: ${r.litros} | vacío: ${r.vacio} | %: ${r.pct}\n`;
+        }
+        try{
+          if (navigator.clipboard?.writeText){
+            await navigator.clipboard.writeText(text);
+            toast("✅ Historial copiado.");
+            return;
+          }
+        }catch{}
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try{ document.execCommand("copy"); toast("✅ Historial copiado."); }
+        catch{ toast("No se pudo copiar."); }
+        finally{ ta.remove(); }
+      }
+
+      function exportHistoryCSV(){
+        const h = loadHistory();
+        if (!h.length){ toast("No hay historial para exportar."); return; }
+        const lines = ["fecha,tanque,modo,entrada,altura_cm,litros,vacio_cm,porcentaje"];
+        for (const r of h){
+          lines.push(`"${r.fecha}","${r.tanque}","${r.modo}","${r.entrada}",${r.altura},${r.litros},${r.vacio},"${r.pct}"`);
+        }
+        const date = new Date().toISOString().slice(0,10);
+        downloadFile(`historial_tanques_${date}.csv`, "text/csv;charset=utf-8", lines.join("\n"));
+        toast("Historial CSV descargado.");
+      }
+
+      function loadState(){
+        try{
+          const raw = localStorage.getItem(LS_STATE);
+          if (!raw) return null;
+          const s = JSON.parse(raw);
+          return (s && typeof s === "object") ? s : null;
+        }catch{ return null; }
+      }
+      function saveState(){
+        const s = {
+          tanque: el.tanque.value,
+          modo: el.modo.value,
+          valor: el.valor.value,
+          autoCalc: el.autoCalc.checked,
+          allowExtrap: el.allowExtrap.checked
+        };
+        localStorage.setItem(LS_STATE, JSON.stringify(s));
+      }
+
+      function resetState(){
+        localStorage.removeItem(LS_STATE);
+        el.valor.value = "";
+        el.autoCalc.checked = false;
+        el.allowExtrap.checked = false;
+        hideResult();
+        clearError(); clearWarning();
+        renderTable();
+        updateModeUI();
+        saveState();
+        toast("Estado restablecido.");
+      }
+
+      function clearInputs(){
+        el.valor.value = "";
+        el.valor.classList.remove("invalid");
+        clearError(); clearWarning();
+        hideResult();
+        saveState();
+      }
+
+      function runCalc(saveToHistory){
+        clearError(); clearWarning();
+        el.valor.classList.remove("invalid");
+
+        const tank = getTank(el.tanque.value);
+        const mode = el.modo.value;
+        const allowExtrap = el.allowExtrap.checked;
+
+        const v = parseNumber(el.valor.value);
+        const err = validateInput(tank, mode, v, allowExtrap);
+        if (err){
+          showError(err);
+          el.valor.classList.add("invalid");
+          hideResult();
+          return;
+        }
+
+        const result = computeResult(tank, mode, v, allowExtrap);
+        if (!result){
+          showError("No se pudo calcular (fuera de rango).");
+          el.valor.classList.add("invalid");
+          hideResult();
+          return;
+        }
+
+        if (result.extrapolated){
+          showWarning("Resultado estimado por extrapolación (±2 cm).");
+        } else {
+          clearWarning();
+        }
+
+        showResult(result, mode, v, saveToHistory);
+
+        if (saveToHistory){
+          addHistoryEntry({
+            fecha: new Date().toLocaleString(),
+            tanque: tank.key,
+            modo: modeText(mode) + (result.extrapolated ? " (estimado)" : ""),
+            entrada: `${nf2.format(v)} ${mode === "litros" ? "L" : "cm"}`,
+            altura: `${nf2.format(result.h)}`,
+            litros: `${nf2.format(result.l)}`,
+            vacio: `${nf2.format(result.empty)}`,
+            pct: `${nf2.format(result.pct)}%`
+          });
+          renderHistory();
+        }
+
+        saveState();
+        el.resultado.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function updateYear(){ document.getElementById("anio").textContent = new Date().getFullYear(); }
+
+      function init(){
+        updateYear();
+
+        // si algo falla, lo mostramos
+        window.addEventListener("error", (e) => {
+          showError("Error de la app: " + (e?.message || "revisa el código/copia completa del archivo."));
+        });
+
+        // Populate tanks
+        const keys = Object.keys(DATA).sort((a,b)=>parseInt(a)-parseInt(b));
+        el.tanque.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join("");
+
+        // Restore state
+        const s = loadState();
+        if (s?.tanque && DATA[s.tanque]) el.tanque.value = s.tanque;
+        if (s?.modo) el.modo.value = s.modo;
+        if (typeof s?.valor === "string") el.valor.value = s.valor;
+        if (typeof s?.autoCalc === "boolean") el.autoCalc.checked = s.autoCalc;
+        if (typeof s?.allowExtrap === "boolean") el.allowExtrap.checked = s.allowExtrap;
+
+        updateTankMeta();
+        updateModeUI();
+        renderTable();
+        renderHistory();
+
+        // Mobile defaults: plegar tabla/hist
+        if (mqMobile.matches){
+          document.getElementById("detailsTable").removeAttribute("open");
+          document.getElementById("detailsHistory").removeAttribute("open");
+        }
+
+        el.tanque.addEventListener("change", () => {
+          updateTankMeta();
+          updateModeUI();
+          renderTable();
+          hideResult();
+          saveState();
+        });
+
+        el.modo.addEventListener("change", () => {
+          updateModeUI();
+          hideResult();
+          saveState();
+        });
+
+        el.allowExtrap.addEventListener("change", () => {
+          updateModeUI();
+          if (el.autoCalc.checked && el.valor.value.trim() !== "") runCalc(false);
+          saveState();
+        });
+
+        el.valor.addEventListener("input", () => {
+          saveState();
+          if (el.autoCalc.checked) runCalc(false);
+          else { clearError(); el.valor.classList.remove("invalid"); }
+        });
+
+        el.valor.addEventListener("keydown", (e) => {
+          if (e.key === "Enter"){ e.preventDefault(); runCalc(true); }
+        });
+
+        el.btnCalcular.addEventListener("click", () => runCalc(true));
+        el.btnCalcularBottom.addEventListener("click", () => runCalc(true));
+        el.btnLimpiar.addEventListener("click", clearInputs);
+        el.btnLimpiarBottom.addEventListener("click", clearInputs);
+        el.btnResetState.addEventListener("click", resetState);
+
+        el.btnHistClear.addEventListener("click", () => {
+          localStorage.removeItem(LS_HIST);
+          renderHistory();
+          toast("Historial eliminado.");
+        });
+        el.btnHistCopy.addEventListener("click", copyHistory);
+        el.btnHistCsv.addEventListener("click", exportHistoryCSV);
+      }
+
+      document.addEventListener("DOMContentLoaded", init);
+    })();
+  </script>
 </body>
 </html>
-
 
