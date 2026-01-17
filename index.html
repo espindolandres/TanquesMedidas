@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8" />            
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <meta name="theme-color" content="#1976D2" />
   <title>Medidas de Tanques</title>
@@ -79,7 +79,7 @@
       font-family: var(--font);
       font-size: 16px; /* evita zoom iOS */
     }
-  
+
     select, input{
       width:100%;
       padding:12px;
@@ -238,15 +238,13 @@
 
           <div class="field col-12">
             <label id="valorLabel" for="valor">Valor</label>
-            <input id="valor" type="text" inputmode="decimal" enterkeyhint="done" placeholder="Ej: 39" />
+            <input id="valor" type="text" inputmode="decimal" enterkeyhint="done"
+                   autocomplete="off" autocorrect="off" spellcheck="false"
+                   placeholder="Ej: 39" />
             <p class="help" id="rango">—</p>
 
             <div class="row" style="margin-top:12px;">
-              <label class="toggle">
-                <input type="checkbox" id="autoCalc" />
-                Vista previa automática
-              </label>
-
+           
               <label class="toggle">
                 <input type="checkbox" id="allowExtrap" />
                 Extrapolación ±2 cm (estimado)
@@ -256,7 +254,7 @@
         </div>
 
         <div class="btns">
-          <button class="btn-primary" id="btnCalcular" type="button">Calcular y guardar</button>
+          <button class="btn-primary" id="btnCalcular" type="button">Guardar</button>
           <button class="btn-secondary" id="btnLimpiar" type="button">Limpiar</button>
         </div>
 
@@ -338,7 +336,6 @@
   </div>
 
   <div class="bottom-bar" aria-label="Acciones rápidas">
-    <button class="btn-primary" id="btnCalcularBottom" type="button">Calcular</button>
     <button class="btn-secondary" id="btnLimpiarBottom" type="button">Limpiar</button>
   </div>
 
@@ -367,12 +364,10 @@
         rango: document.getElementById("rango"),
         tankMeta: document.getElementById("tankMeta"),
         modoHelp: document.getElementById("modoHelp"),
-        autoCalc: document.getElementById("autoCalc"),
         allowExtrap: document.getElementById("allowExtrap"),
 
         btnCalcular: document.getElementById("btnCalcular"),
         btnLimpiar: document.getElementById("btnLimpiar"),
-        btnCalcularBottom: document.getElementById("btnCalcularBottom"),
         btnLimpiarBottom: document.getElementById("btnLimpiarBottom"),
         btnResetState: document.getElementById("btnResetState"),
 
@@ -383,13 +378,9 @@
         resTitulo: document.getElementById("resTitulo"),
         resSubtitulo: document.getElementById("resSubtitulo"),
         outAltura: document.getElementById("outAltura"),
-        outAlturaSub: document.getElementById("outAlturaSub"),
         outLitros: document.getElementById("outLitros"),
-        outLitrosSub: document.getElementById("outLitrosSub"),
         outVacio: document.getElementById("outVacio"),
-        outVacioSub: document.getElementById("outVacioSub"),
         outPct: document.getElementById("outPct"),
-        outPctSub: document.getElementById("outPctSub"),
         toast: document.getElementById("toast"),
 
         tablaDatos: document.getElementById("tablaDatos"),
@@ -427,7 +418,7 @@
         el.alertWarning.hidden = true;
         el.alertWarning.textContent = "";
       }
-      function toast(msg){ el.toast.textContent = msg; }
+      function toast(msg){ el.toast.textContent = msg || ""; }
 
       function downloadFile(filename, mime, content){
         const blob = new Blob([content], { type: mime });
@@ -595,7 +586,12 @@
         if (Number.isFinite(l) && l < 0){ l = 0; extrap = true; }
 
         const empty = tank.maxH - h;
-        const pct = (tank.maxL>0) ? (l / tank.maxL) * 100 : NaN;
+
+        let pct = (tank.maxL>0) ? (l / tank.maxL) * 100 : NaN;
+        if (Number.isFinite(pct)){
+          pct = Math.max(0, Math.min(100, pct));
+        }
+
         return { h, l, empty, pct, extrapolated: extrap };
       }
 
@@ -666,7 +662,7 @@
         el.outVacio.textContent  = `${nf2.format(result.empty)} cm`;
         el.outPct.textContent    = `${nf2.format(result.pct)}%`;
 
-        toast(isSaved ? "✅ Cálculo guardado." : "Vista previa actualizada.");
+        toast(isSaved ? "✅ Guardado en historial." : "");
       }
 
       function renderTable(){
@@ -777,7 +773,6 @@
           tanque: el.tanque.value,
           modo: el.modo.value,
           valor: el.valor.value,
-          autoCalc: el.autoCalc.checked,
           allowExtrap: el.allowExtrap.checked
         };
         localStorage.setItem(LS_STATE, JSON.stringify(s));
@@ -786,7 +781,6 @@
       function resetState(){
         localStorage.removeItem(LS_STATE);
         el.valor.value = "";
-        el.autoCalc.checked = false;
         el.allowExtrap.checked = false;
         hideResult();
         clearError(); clearWarning();
@@ -802,11 +796,27 @@
         clearError(); clearWarning();
         hideResult();
         saveState();
+        toast("");
+      }
+
+      function nowStampCO(){
+        const now = new Date();
+        return now.toLocaleString("es-CO", {
+          year:"numeric", month:"2-digit", day:"2-digit",
+          hour:"2-digit", minute:"2-digit"
+        });
       }
 
       function runCalc(saveToHistory){
         clearError(); clearWarning();
         el.valor.classList.remove("invalid");
+
+        if (el.valor.value.trim() === ""){
+          hideResult();
+          toast("");
+          saveState();
+          return;
+        }
 
         const tank = getTank(el.tanque.value);
         const mode = el.modo.value;
@@ -818,6 +828,7 @@
           showError(err);
           el.valor.classList.add("invalid");
           hideResult();
+          saveState();
           return;
         }
 
@@ -826,6 +837,7 @@
           showError("No se pudo calcular (fuera de rango).");
           el.valor.classList.add("invalid");
           hideResult();
+          saveState();
           return;
         }
 
@@ -839,7 +851,7 @@
 
         if (saveToHistory){
           addHistoryEntry({
-            fecha: new Date().toLocaleString(),
+            fecha: nowStampCO(),
             tanque: tank.key,
             modo: modeText(mode) + (result.extrapolated ? " (estimado)" : ""),
             entrada: `${nf2.format(v)} ${mode === "litros" ? "L" : "cm"}`,
@@ -852,29 +864,28 @@
         }
 
         saveState();
-        el.resultado.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        if (saveToHistory){
+          el.resultado.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       }
 
-      function updateYear(){ document.getElementById("anio").textContent = new Date().getFullYear(); }
+      function updateYear(){ el.anio.textContent = new Date().getFullYear(); }
 
       function init(){
         updateYear();
 
-        // si algo falla, lo mostramos
         window.addEventListener("error", (e) => {
           showError("Error de la app: " + (e?.message || "revisa el código/copia completa del archivo."));
         });
 
-        // Populate tanks
         const keys = Object.keys(DATA).sort((a,b)=>parseInt(a)-parseInt(b));
         el.tanque.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join("");
 
-        // Restore state
         const s = loadState();
         if (s?.tanque && DATA[s.tanque]) el.tanque.value = s.tanque;
         if (s?.modo) el.modo.value = s.modo;
         if (typeof s?.valor === "string") el.valor.value = s.valor;
-        if (typeof s?.autoCalc === "boolean") el.autoCalc.checked = s.autoCalc;
         if (typeof s?.allowExtrap === "boolean") el.allowExtrap.checked = s.allowExtrap;
 
         updateTankMeta();
@@ -882,7 +893,6 @@
         renderTable();
         renderHistory();
 
-        // Mobile defaults: plegar tabla/hist
         if (mqMobile.matches){
           document.getElementById("detailsTable").removeAttribute("open");
           document.getElementById("detailsHistory").removeAttribute("open");
@@ -894,24 +904,33 @@
           renderTable();
           hideResult();
           saveState();
+          if (el.valor.value.trim() !== "") runCalc(false);
         });
 
         el.modo.addEventListener("change", () => {
           updateModeUI();
           hideResult();
           saveState();
+          if (el.valor.value.trim() !== "") runCalc(false);
         });
 
         el.allowExtrap.addEventListener("change", () => {
           updateModeUI();
-          if (el.autoCalc.checked && el.valor.value.trim() !== "") runCalc(false);
+          if (el.valor.value.trim() !== "") runCalc(false);
           saveState();
         });
 
+        //  Cálculo automático siempre
         el.valor.addEventListener("input", () => {
           saveState();
-          if (el.autoCalc.checked) runCalc(false);
-          else { clearError(); el.valor.classList.remove("invalid"); }
+          if (el.valor.value.trim() === ""){
+            clearError(); clearWarning();
+            el.valor.classList.remove("invalid");
+            hideResult();
+            toast("");
+            return;
+          }
+          runCalc(false);
         });
 
         el.valor.addEventListener("keydown", (e) => {
@@ -919,7 +938,6 @@
         });
 
         el.btnCalcular.addEventListener("click", () => runCalc(true));
-        el.btnCalcularBottom.addEventListener("click", () => runCalc(true));
         el.btnLimpiar.addEventListener("click", clearInputs);
         el.btnLimpiarBottom.addEventListener("click", clearInputs);
         el.btnResetState.addEventListener("click", resetState);
@@ -938,4 +956,3 @@
   </script>
 </body>
 </html>
-
