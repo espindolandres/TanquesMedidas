@@ -123,6 +123,10 @@
       position: relative; z-index: 1;
     }
     .toggle input{width:auto;margin:0}
+    .toggle[aria-disabled="true"]{
+      opacity:.55;
+      cursor:not-allowed;
+    }
 
     .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
     button{
@@ -202,7 +206,7 @@
       <div>
         <h1>Medidas de Tanques</h1>
         <p class="subtitle">
-          Calcula por <strong>interpolación lineal</strong> usando la tabla de calibración.
+          Calcula por <strong>interpolación lineal</strong> usando tabla.
         </p>
       </div>
     </header>
@@ -212,7 +216,7 @@
         <div class="card-head">
           <div>
             <h2>1) Selección y cálculo</h2>
-            <p class="muted">Elige el tanque, el modo y escribe un valor.</p>
+            <p class="muted">Elige el tanque/silo, el modo y escribe un valor.</p>
           </div>
           <div class="btns" style="margin-top:0">
             <button class="btn-ghost" id="btnResetState" type="button">Restablecer</button>
@@ -221,7 +225,7 @@
 
         <div class="grid">
           <div class="field col-6">
-            <label for="tanque">Tanque</label>
+            <label for="tanque">Tanque / Silo</label>
             <select id="tanque"></select>
             <p class="help" id="tankMeta">—</p>
           </div>
@@ -244,17 +248,18 @@
             <p class="help" id="rango">—</p>
 
             <div class="row" style="margin-top:12px;">
-           
-              <label class="toggle">
+              <label class="toggle" id="extrapToggle">
                 <input type="checkbox" id="allowExtrap" />
                 Extrapolación ±2 cm (estimado)
               </label>
+              <p class="help" id="extrapHelp" style="margin:0">—</p>
             </div>
           </div>
         </div>
 
         <div class="btns">
-          <button class="btn-primary" id="btnCalcular" type="button">Guardar</button>
+          <!-- Cambio UX: el cálculo es automático; este botón guarda -->
+          <button class="btn-primary" id="btnCalcular" type="button">Guardar en historial</button>
           <button class="btn-secondary" id="btnLimpiar" type="button">Limpiar</button>
         </div>
 
@@ -298,8 +303,8 @@
         <summary>
           <div class="summary-row">
             <div>
-              <h2>2) Tabla del tanque seleccionado</h2>
-              <p class="muted"> Se puede plegar para ahorrar espacio.</p>
+              <h2>2) Tabla / Modelo del seleccionado</h2>
+              <p class="muted">Se puede plegar.</p>
             </div>
             <div class="chev" aria-hidden="true"></div>
           </div>
@@ -313,8 +318,8 @@
         <summary>
           <div class="summary-row">
             <div>
-              <h2>3) Histórico </h2>
-              <p class="muted">Se guarda .</p>
+              <h2>3) Histórico</h2>
+              <p class="muted">Se guarda.</p>
             </div>
             <div class="chev" aria-hidden="true"></div>
           </div>
@@ -344,16 +349,25 @@
       "use strict";
 
       const MAX_HIST = 20;
-      const LS_STATE = "tankcalc_state_v3";
-      const LS_HIST  = "tankcalc_history_v3";
+      const LS_STATE = "tankcalc_state_v4";   // <-- subí versión por cambios
+      const LS_HIST  = "tankcalc_history_v4"; // <-- subí versión por cambios
       const EXTRAP_TOL_CM = 2;
+      const TABLE_PREVIEW_ROWS = 40;
 
+      // =========================
+      // DATA (TABLAS + SILOS LINEALES)
+      // =========================
       const DATA = {
-        "250L":[[4.5,10],[9,20],[13,30],[17,40],[21,50],[25,60],[28.5,70],[32,80],[35.5,90],[39,100],[42.5,110],[46,120],[49,130],[52,140],[56,150],[59,160],[62,170],[65,180],[68,190],[71,200],[74,210],[76.5,220],[79,230],[81,240],[83,250]],
-        "500L":[[0,0],[21,100],[30.5,150],[40,200],[49,250],[58,300],[66,350],[74,400],[83.25,450],[92.5,500]],
-        "1000L":[[13.5,100],[20.3,150],[27,200],[34.5,250],[42,300],[50,350],[58,400],[65,450],[72,500],[77,550],[82,600],[87.5,650],[93,700],[99,750],[105,800],[110,850],[115,900],[121,950],[127,1000]],
-        "2000L":[[12,100],[18,150],[24,200],[31.1,250],[38.2,300],[39.9,350],[41.5,400],[45.9,450],[50.3,500],[54.5,550],[59,600],[63.5,650],[68,700],[72,750],[76.5,800],[80.2,850],[84,900],[89,950],[92,1000],[96,1050],[100,1100],[104,1150],[108,1200],[112,1250],[117,1300],[121,1350],[125,1400],[128,1450],[132,1500],[135,1550],[138,1600],[142,1650],[145,1700],[148.6,1750],[152,1800],[156,1850],[158,1900],[161,1950],[164,2000]],
-        "5000L":[[2.5,50],[5,100],[7.5,150],[10,200],[12.5,250],[14.5,300],[16.5,350],[18.5,400],[22.2,450],[24.5,500],[26.7,550],[27.5,600],[29.2,650],[30.7,700],[32.3,750],[34,800],[36.5,850],[39,900],[41.5,950],[44,1000],[46,1050],[48,1100],[50,1150],[52,1200],[54.2,1250],[56.2,1300],[58.4,1350],[60.5,1400],[62.4,1450],[64.5,1500],[66.5,1550],[68,1600],[70,1650],[72,1700],[74,1750],[76,1800],[77.1,1850],[79.1,1900],[81.7,1950],[83.7,2000],[85.4,2050],[87.1,2100],[88.8,2150],[90.5,2200],[92.6,2250],[94.7,2300],[96.8,2350],[99,2400],[100.7,2450],[102.5,2500],[104.2,2550],[106,2600],[108,2650],[110,2700],[112,2750],[114,2800],[115.7,2850],[117.2,2900],[119.2,2950],[121,3000],[122.7,3050],[124.5,3100],[126.2,3150],[128,3200],[129.7,3250],[131.2,3300],[133.2,3350],[135,3400],[136.7,3450],[138.4,3500],[140.2,3550],[142,3600],[143.7,3650],[145.5,3700],[147.2,3750],[149,3800],[150.7,3850],[152.2,3900],[154.2,3950],[156,4000],[158,4050],[160,4100],[162,4150],[164,4200],[166.7,4250],[168.4,4300],[170.2,4350],[171,4400],[173,4450],[175,4500],[177,4550],[179,4600],[181,4650],[183,4700],[185,4750],[187,4800],[188.8,4850],[190.7,4900],[192.6,4950],[194.5,5000]]
+        // === Tanques por TABLA ===
+        "250L":  { type:"table", points:[[4.5,10],[9,20],[13,30],[17,40],[21,50],[25,60],[28.5,70],[32,80],[35.5,90],[39,100],[42.5,110],[46,120],[49,130],[52,140],[56,150],[59,160],[62,170],[65,180],[68,190],[71,200],[74,210],[76.5,220],[79,230],[81,240],[83,250]] },
+        "500L":  { type:"table", points:[[0,0],[21,100],[30.5,150],[40,200],[49,250],[58,300],[66,350],[74,400],[83.25,450],[92.5,500]] },
+        "1000L": { type:"table", points:[[13.5,100],[20.3,150],[27,200],[34.5,250],[42,300],[50,350],[58,400],[65,450],[72,500],[77,550],[82,600],[87.5,650],[93,700],[99,750],[105,800],[110,850],[115,900],[121,950],[127,1000]] },
+        "2000L": { type:"table", points:[[12,100],[18,150],[24,200],[31.1,250],[38.2,300],[39.9,350],[41.5,400],[45.9,450],[50.3,500],[54.5,550],[59,600],[63.5,650],[68,700],[72,750],[76.5,800],[80.2,850],[84,900],[89,950],[92,1000],[96,1050],[100,1100],[104,1150],[108,1200],[112,1250],[117,1300],[121,1350],[125,1400],[128,1450],[132,1500],[135,1550],[138,1600],[142,1650],[145,1700],[148.6,1750],[152,1800],[156,1850],[158,1900],[161,1950],[164,2000]] },
+        "5000L": { type:"table", points:[[2.5,50],[5,100],[7.5,150],[10,200],[12.5,250],[14.5,300],[16.5,350],[18.5,400],[22.2,450],[24.5,500],[26.7,550],[27.5,600],[29.2,650],[30.7,700],[32.3,750],[34,800],[36.5,850],[39,900],[41.5,950],[44,1000],[46,1050],[48,1100],[50,1150],[52,1200],[54.2,1250],[56.2,1300],[58.4,1350],[60.5,1400],[62.4,1450],[64.5,1500],[66.5,1550],[68,1600],[70,1650],[72,1700],[74,1750],[76,1800],[77.1,1850],[79.1,1900],[81.7,1950],[83.7,2000],[85.4,2050],[87.1,2100],[88.8,2150],[90.5,2200],[92.6,2250],[94.7,2300],[96.8,2350],[99,2400],[100.7,2450],[102.5,2500],[104.2,2550],[106,2600],[108,2650],[110,2700],[112,2750],[114,2800],[115.7,2850],[117.2,2900],[119.2,2950],[121,3000],[122.7,3050],[124.5,3100],[126.2,3150],[128,3200],[129.7,3250],[131.2,3300],[133.2,3350],[135,3400],[136.7,3450],[138.4,3500],[140.2,3550],[142,3600],[143.7,3650],[145.5,3700],[147.2,3750],[149,3800],[150.7,3850],[152.2,3900],[154.2,3950],[156,4000],[158,4050],[160,4100],[162,4150],[164,4200],[166.7,4250],[168.4,4300],[170.2,4350],[171,4400],[173,4450],[175,4500],[177,4550],[179,4600],[181,4650],[183,4700],[185,4750],[187,4800],[188.8,4850],[190.7,4900],[192.6,4950],[194.5,5000]] },
+
+        // === Silos LINEALES (los nuevos) ===
+        "Silo 4 y 10 (Alfacer 4)": { type:"linear", maxH: 199, litersPerCm: 31.3 },
+        "Silo 13 (Alfacer 4)":    { type:"linear", maxH: 134, litersPerCm: 17.3 }
       };
 
       const el = {
@@ -365,6 +379,8 @@
         tankMeta: document.getElementById("tankMeta"),
         modoHelp: document.getElementById("modoHelp"),
         allowExtrap: document.getElementById("allowExtrap"),
+        extrapToggle: document.getElementById("extrapToggle"),
+        extrapHelp: document.getElementById("extrapHelp"),
 
         btnCalcular: document.getElementById("btnCalcular"),
         btnLimpiar: document.getElementById("btnLimpiar"),
@@ -381,6 +397,10 @@
         outLitros: document.getElementById("outLitros"),
         outVacio: document.getElementById("outVacio"),
         outPct: document.getElementById("outPct"),
+        outAlturaSub: document.getElementById("outAlturaSub"),
+        outLitrosSub: document.getElementById("outLitrosSub"),
+        outVacioSub: document.getElementById("outVacioSub"),
+        outPctSub: document.getElementById("outPctSub"),
         toast: document.getElementById("toast"),
 
         tablaDatos: document.getElementById("tablaDatos"),
@@ -432,11 +452,31 @@
         URL.revokeObjectURL(url);
       }
 
+      // =========================
+      // Tanques: tabla o lineal
+      // =========================
       const tankCache = new Map();
       function getTank(key){
         if (tankCache.has(key)) return tankCache.get(key);
 
-        const points = DATA[key]
+        const def = DATA[key];
+        const type = Array.isArray(def) ? "table" : (def?.type || "table");
+        let rawPoints;
+        let meta = { type };
+
+        if (type === "linear"){
+          const maxH = Number(def.maxH);
+          const lPerCm = Number(def.litersPerCm);
+          const maxL = maxH * lPerCm;
+
+          rawPoints = [[0,0],[maxH, maxL]];
+          meta = { type:"linear", maxH, lPerCm, maxL };
+        } else {
+          rawPoints = Array.isArray(def) ? def : def.points;
+          meta = { type:"table" };
+        }
+
+        const points = rawPoints
           .map(([h,l]) => ({ h: Number(h), l: Number(l) }))
           .sort((a,b) => a.h - b.h);
 
@@ -445,18 +485,26 @@
         const minL = points[0].l;
         const maxL = points[points.length - 1].l;
 
-        const tank = { key, points, minH, maxH, minL, maxL, count: points.length };
+        const tank = { key, points, minH, maxH, minL, maxL, count: points.length, meta };
         tankCache.set(key, tank);
         return tank;
       }
 
+      function isLinear(tank){ return tank.meta?.type === "linear"; }
+
       function getHeightRange(tank, allowExtrap){
+        // Para silos lineales NO usamos extrapolación (se desactiva en UI)
         const min = allowExtrap ? Math.max(0, tank.minH - EXTRAP_TOL_CM) : tank.minH;
         const max = allowExtrap ? (tank.maxH + EXTRAP_TOL_CM) : tank.maxH;
         return { min, max };
       }
 
       function getLitersTolFrom2cm(tank){
+        if (isLinear(tank)){
+          const tol = Math.abs(tank.meta.lPerCm) * EXTRAP_TOL_CM;
+          return { low: tol, high: tol };
+        }
+
         const pts = tank.points;
         if (pts.length < 2) return { low: 0, high: 0 };
 
@@ -479,6 +527,19 @@
         if (!allowExtrap) return { min: tank.minL, max: tank.maxL };
         const tol = getLitersTolFrom2cm(tank);
         return { min: Math.max(0, tank.minL - tol.low), max: tank.maxL + tol.high };
+      }
+
+      // Vacío "calibrado" distinto para tabla vs lineal (más claro)
+      function getEmptyRange(tank, allowExtrap){
+        const minEmpty = allowExtrap ? -EXTRAP_TOL_CM : 0;
+
+        // Para tabla: rango calibrado es (maxH - minH)
+        // Para lineal: rango físico es (maxH - 0)
+        const baseMinH = isLinear(tank) ? 0 : tank.minH;
+        const heightRange = getHeightRange(tank, allowExtrap);
+        const maxEmpty = tank.maxH - Math.max(baseMinH, heightRange.min);
+
+        return { minEmpty, maxEmpty, baseMinH };
       }
 
       function interpWithExtrap(points, x, xKey, yKey, allowExtrap, tol){
@@ -550,13 +611,12 @@
         }
 
         // vacío
-        const minEmpty = allowExtrap ? -EXTRAP_TOL_CM : 0;
-        const heightRange = getHeightRange(tank, allowExtrap);
-        const maxEmpty = tank.maxH - heightRange.min;
-        if (v < minEmpty || v > maxEmpty){
+        const er = getEmptyRange(tank, allowExtrap);
+        if (v < er.minEmpty || v > er.maxEmpty){
+          const calMax = tank.maxH - er.baseMinH;
           return allowExtrap
-            ? `Vacío fuera del rango permitido. Calibrado: 0–${nf2.format(tank.maxH - tank.minH)} cm. Con extrap.: ${nf2.format(minEmpty)}–${nf2.format(maxEmpty)} cm.`
-            : `Vacío fuera de rango. Rango: 0–${nf2.format(tank.maxH - tank.minH)} cm.`;
+            ? `Vacío fuera del rango permitido. Calibrado: 0–${nf2.format(calMax)} cm. Con extrap.: ${nf2.format(er.minEmpty)}–${nf2.format(er.maxEmpty)} cm.`
+            : `Vacío fuera de rango. Rango: 0–${nf2.format(calMax)} cm.`;
         }
         return null;
       }
@@ -597,12 +657,38 @@
 
       function updateTankMeta(){
         const tank = getTank(el.tanque.value);
-        el.tankMeta.textContent = `Altura calibrada: ${nf2.format(tank.minH)}–${nf2.format(tank.maxH)} cm • Capacidad (tabla): ${nf2.format(tank.maxL)} L • Filas: ${tank.count}`;
+
+        if (isLinear(tank)){
+          el.tankMeta.textContent =
+            `Altura máxima: ${nf2.format(tank.meta.maxH)} cm • 1 cm = ${nf2.format(tank.meta.lPerCm)} L • Capacidad: ${nf2.format(tank.meta.maxL)} L`;
+          return;
+        }
+
+        el.tankMeta.textContent =
+          `Altura calibrada: ${nf2.format(tank.minH)}–${nf2.format(tank.maxH)} cm • Capacidad (tabla): ${nf2.format(tank.maxL)} L • Filas: ${tank.count}`;
+      }
+
+      function updateExtrapUI(){
+        const tank = getTank(el.tanque.value);
+
+        if (isLinear(tank)){
+          // Para evitar resultados raros, se desactiva extrapolación en silos lineales
+          el.allowExtrap.checked = false;
+          el.allowExtrap.disabled = true;
+          el.extrapToggle.setAttribute("aria-disabled","true");
+          el.extrapHelp.textContent = "En silos lineales la extrapolación está desactivada (se usa 0–altura máxima).";
+        } else {
+          el.allowExtrap.disabled = false;
+          el.extrapToggle.removeAttribute("aria-disabled");
+          el.extrapHelp.textContent = "Útil si tu medición queda cerca del rango calibrado.";
+        }
       }
 
       function updateModeUI(){
         const mode = el.modo.value;
         const tank = getTank(el.tanque.value);
+
+        // Forzamos allowExtrap ya procesado por UI
         const allowExtrap = el.allowExtrap.checked;
 
         el.valor.classList.remove("invalid");
@@ -628,12 +714,13 @@
           el.valorLabel.textContent = "Vacío (cm)";
           el.valor.placeholder = "Ej: 100";
           el.modoHelp.textContent = "Ingresa vacío y obtén litros + altura + %.";
-          const minEmpty = allowExtrap ? -EXTRAP_TOL_CM : 0;
-          const hr = getHeightRange(tank, allowExtrap);
-          const maxEmpty = tank.maxH - hr.min;
+
+          const er = getEmptyRange(tank, allowExtrap);
+          const calMax = tank.maxH - er.baseMinH;
+
           el.rango.textContent = allowExtrap
-            ? `Calibrado: 0–${nf2.format(tank.maxH - tank.minH)} cm • Extrap: ${nf2.format(minEmpty)}–${nf2.format(maxEmpty)} cm.`
-            : `Calibrado: 0–${nf2.format(tank.maxH - tank.minH)} cm.`;
+            ? `Calibrado: 0–${nf2.format(calMax)} cm • Extrap: ${nf2.format(er.minEmpty)}–${nf2.format(er.maxEmpty)} cm.`
+            : `Calibrado: 0–${nf2.format(calMax)} cm.`;
         }
       }
 
@@ -643,6 +730,10 @@
         el.outLitros.textContent = "—";
         el.outVacio.textContent = "—";
         el.outPct.textContent = "—";
+        el.outAlturaSub.textContent = "—";
+        el.outLitrosSub.textContent = "—";
+        el.outVacioSub.textContent = "—";
+        el.outPctSub.textContent = "—";
         el.resSubtitulo.textContent = "—";
         toast("");
       }
@@ -662,23 +753,84 @@
         el.outVacio.textContent  = `${nf2.format(result.empty)} cm`;
         el.outPct.textContent    = `${nf2.format(result.pct)}%`;
 
+        // Sub-info útil (antes estaba vacío)
+        const quality = result.extrapolated ? "estimado" : "calibrado";
+        el.outAlturaSub.textContent = quality;
+
+        if (isLinear(tank)){
+          el.outLitrosSub.textContent = `k=${nf2.format(tank.meta.lPerCm)} L/cm`;
+          el.outVacioSub.textContent  = `máx=${nf2.format(tank.meta.maxH)} cm`;
+          el.outPctSub.textContent    = `cap=${nf2.format(tank.meta.maxL)} L`;
+        } else {
+          el.outLitrosSub.textContent = `tabla (${tank.count} filas)`;
+          el.outVacioSub.textContent  = `hMax=${nf2.format(tank.maxH)} cm`;
+          el.outPctSub.textContent    = `cap=${nf2.format(tank.maxL)} L`;
+        }
+
         toast(isSaved ? "✅ Guardado en historial." : "");
       }
+
+      // =========================
+      // Tabla: preview (evita cargar miles de filas de golpe)
+      // =========================
+      const tableExpandedByKey = new Map();
 
       function renderTable(){
         const tank = getTank(el.tanque.value);
 
+        if (isLinear(tank)){
+          const mh = tank.meta.maxH;
+          const k  = tank.meta.lPerCm;
+          const cap = tank.meta.maxL;
+
+          el.tablaDatos.innerHTML = `
+            <div class='alert'>
+              <strong>Modelo lineal</strong><br>
+              <span style='color:var(--muted)'>Litros = Altura(cm) × ${nf2.format(k)}</span><br>
+              <span style='color:var(--muted)'>Altura máx: ${nf2.format(mh)} cm • Capacidad: ${nf2.format(cap)} L</span>
+            </div>
+          `;
+          return;
+        }
+
+        const expanded = !!tableExpandedByKey.get(tank.key);
+        const total = tank.points.length;
+        const showCount = expanded ? total : Math.min(TABLE_PREVIEW_ROWS, total);
+
         let html = "<div class='alert'><strong>Tabla</strong><br><span style='color:var(--muted)'>Altura (cm) ↔ Litros (L)</span></div>";
+        if (total > TABLE_PREVIEW_ROWS){
+          html += `
+            <div class="btns" style="margin-top:10px">
+              <button class="btn-secondary" type="button" id="btnToggleTable">
+                ${expanded ? "Ver menos" : `Ver todo (${total} filas)`}
+              </button>
+            </div>
+          `;
+        }
+
         html += "<div style='margin-top:12px; overflow:auto; border:1px solid var(--border); border-radius:12px; background:#fff; max-height:420px;'>";
         html += "<table style='width:100%; border-collapse:collapse; min-width:520px'>";
         html += "<thead><tr style='background:var(--primary); color:#fff'><th style='padding:12px'>Altura</th><th style='padding:12px'>Litros</th></tr></thead><tbody>";
 
-        tank.points.forEach(p=>{
+        for (let i=0;i<showCount;i++){
+          const p = tank.points[i];
           html += `<tr><td style="padding:10px; text-align:center; border-bottom:1px solid #eef2f7">${p.h}</td><td style="padding:10px; text-align:center; border-bottom:1px solid #eef2f7">${p.l}</td></tr>`;
-        });
+        }
+
+        if (!expanded && total > showCount){
+          html += `<tr><td colspan="2" style="padding:10px; text-align:center; color:var(--muted)">… (${total - showCount} filas ocultas)</td></tr>`;
+        }
 
         html += "</tbody></table></div>";
         el.tablaDatos.innerHTML = html;
+
+        const btn = document.getElementById("btnToggleTable");
+        if (btn){
+          btn.addEventListener("click", () => {
+            tableExpandedByKey.set(tank.key, !expanded);
+            renderTable();
+          }, { once:true });
+        }
       }
 
       function loadHistory(){
@@ -705,13 +857,16 @@
         }
         let html = "<div style='display:grid; gap:12px; margin-top:6px'>";
         h.forEach(r=>{
+          const meta = r.tipo === "lineal"
+            ? `• lineal k=${r.k ?? "—"}`
+            : "• tabla";
           html += `
             <div style="border:1px solid var(--border); border-radius:14px; padding:12px; background:#fff">
               <div style="display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap">
                 <div><div style="color:var(--muted); font-size:.82rem">Fecha</div><div style="font-weight:950">${r.fecha}</div></div>
                 <div><div style="color:var(--muted); font-size:.82rem">Tanque</div><div style="font-weight:950">${r.tanque}</div></div>
               </div>
-              <div style="margin-top:8px; color:var(--muted)"><strong>${r.modo}</strong> • Entrada: <strong>${r.entrada}</strong></div>
+              <div style="margin-top:8px; color:var(--muted)"><strong>${r.modo}</strong> ${meta} • Entrada: <strong>${r.entrada}</strong></div>
               <div style="margin-top:8px; display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; color:var(--muted)">
                 <span>Altura: <strong>${r.altura} cm</strong></span>
                 <span>Litros: <strong>${r.litros} L</strong></span>
@@ -730,7 +885,8 @@
         if (!h.length){ toast("No hay historial para copiar."); return; }
         let text = "=== HISTORIAL TANQUES ===\n\n";
         for (const r of h){
-          text += `${r.fecha} | ${r.tanque} | ${r.modo} | entrada: ${r.entrada} | altura: ${r.altura} | litros: ${r.litros} | vacío: ${r.vacio} | %: ${r.pct}\n`;
+          const meta = r.tipo === "lineal" ? ` | tipo: lineal | k: ${r.k}` : " | tipo: tabla";
+          text += `${r.fecha} | ${r.tanque} | ${r.modo}${meta} | entrada: ${r.entrada} | altura: ${r.altura} | litros: ${r.litros} | vacío: ${r.vacio} | %: ${r.pct}\n`;
         }
         try{
           if (navigator.clipboard?.writeText){
@@ -751,9 +907,11 @@
       function exportHistoryCSV(){
         const h = loadHistory();
         if (!h.length){ toast("No hay historial para exportar."); return; }
-        const lines = ["fecha,tanque,modo,entrada,altura_cm,litros,vacio_cm,porcentaje"];
+        // Nuevo: tipo y k
+        const lines = ["fecha,tanque,tipo,k,modo,entrada,altura_cm,litros,vacio_cm,porcentaje"];
         for (const r of h){
-          lines.push(`"${r.fecha}","${r.tanque}","${r.modo}","${r.entrada}",${r.altura},${r.litros},${r.vacio},"${r.pct}"`);
+          const k = (r.k ?? "");
+          lines.push(`"${r.fecha}","${r.tanque}","${r.tipo}","${k}","${r.modo}","${r.entrada}",${r.altura},${r.litros},${r.vacio},"${r.pct}"`);
         }
         const date = new Date().toISOString().slice(0,10);
         downloadFile(`historial_tanques_${date}.csv`, "text/csv;charset=utf-8", lines.join("\n"));
@@ -784,6 +942,7 @@
         el.allowExtrap.checked = false;
         hideResult();
         clearError(); clearWarning();
+        updateExtrapUI();
         renderTable();
         updateModeUI();
         saveState();
@@ -842,7 +1001,7 @@
         }
 
         if (result.extrapolated){
-          showWarning("Resultado estimado por extrapolación (±2 cm).");
+          showWarning("Resultado por extrapolación (±2 cm).");
         } else {
           clearWarning();
         }
@@ -850,9 +1009,13 @@
         showResult(result, mode, v, saveToHistory);
 
         if (saveToHistory){
+          const tipo = isLinear(tank) ? "lineal" : "tabla";
           addHistoryEntry({
             fecha: nowStampCO(),
             tanque: tank.key,
+            tipo,
+            k: isLinear(tank) ? nf2.format(tank.meta.lPerCm) : "",
+
             modo: modeText(mode) + (result.extrapolated ? " (estimado)" : ""),
             entrada: `${nf2.format(v)} ${mode === "litros" ? "L" : "cm"}`,
             altura: `${nf2.format(result.h)}`,
@@ -879,8 +1042,29 @@
           showError("Error de la app: " + (e?.message || "revisa el código/copia completa del archivo."));
         });
 
-        const keys = Object.keys(DATA).sort((a,b)=>parseInt(a)-parseInt(b));
-        el.tanque.innerHTML = keys.map(k => `<option value="${k}">${k}</option>`).join("");
+        // === Selector organizado (no saturado)
+        const keys = Object.keys(DATA);
+
+        const tableKeys  = keys.filter(k => (Array.isArray(DATA[k]) || DATA[k]?.type === "table"));
+        const linearKeys = keys.filter(k => (DATA[k]?.type === "linear"));
+
+        tableKeys.sort((a,b)=>{
+          const na = Number.parseInt(a,10), nb = Number.parseInt(b,10);
+          const fa = Number.isFinite(na), fb = Number.isFinite(nb);
+          if (fa && fb) return na - nb;
+          if (fa) return -1;
+          if (fb) return 1;
+          return a.localeCompare(b, "es");
+        });
+        linearKeys.sort((a,b)=>a.localeCompare(b,"es"));
+
+        el.tanque.innerHTML =
+          `<optgroup label="Tanques (tabla)">` +
+            tableKeys.map(k => `<option value="${k}">${k}</option>`).join("") +
+          `</optgroup>` +
+          `<optgroup label="Silos (lineal)">` +
+            linearKeys.map(k => `<option value="${k}">${k}</option>`).join("") +
+          `</optgroup>`;
 
         const s = loadState();
         if (s?.tanque && DATA[s.tanque]) el.tanque.value = s.tanque;
@@ -889,6 +1073,7 @@
         if (typeof s?.allowExtrap === "boolean") el.allowExtrap.checked = s.allowExtrap;
 
         updateTankMeta();
+        updateExtrapUI();
         updateModeUI();
         renderTable();
         renderHistory();
@@ -900,6 +1085,7 @@
 
         el.tanque.addEventListener("change", () => {
           updateTankMeta();
+          updateExtrapUI();
           updateModeUI();
           renderTable();
           hideResult();
@@ -920,7 +1106,7 @@
           saveState();
         });
 
-        //  Cálculo automático siempre
+        // Cálculo automático siempre
         el.valor.addEventListener("input", () => {
           saveState();
           if (el.valor.value.trim() === ""){
@@ -937,6 +1123,7 @@
           if (e.key === "Enter"){ e.preventDefault(); runCalc(true); }
         });
 
+        // Botón principal: guardar en historial
         el.btnCalcular.addEventListener("click", () => runCalc(true));
         el.btnLimpiar.addEventListener("click", clearInputs);
         el.btnLimpiarBottom.addEventListener("click", clearInputs);
@@ -956,4 +1143,3 @@
   </script>
 </body>
 </html>
-
